@@ -1,0 +1,18 @@
+.login {
+    background-color: #2D3A4B;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .content {
+        width: 25vw;
+        h1 {
+            text-align: center;
+            color: rgb(238, 238, 238);
+            font-weight: bold;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+    }
+}

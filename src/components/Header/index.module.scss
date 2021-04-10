@@ -1,0 +1,16 @@
+.header {
+    height: 50px;
+    width: 100%;
+    background-color: #3E4957;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 18px;
+    color: #F3F2F6;
+    a {
+        color: #B8B8B8;
+        font-size: 14px;
+    }
+}
