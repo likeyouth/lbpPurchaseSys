@@ -2,7 +2,9 @@ import React from 'react';
 import Guide from '@/components/Guide';
 
 const Home = () => {
-  return <Guide />;
+  return(
+    <div>home</div>
+  )
 };
 
 export default Home;

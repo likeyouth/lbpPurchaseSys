@@ -12,14 +12,12 @@ export default function() {
     )
     return (
         <div className={styles.header}>
-            劳保品采购管理系统
-            <div className={styles.user}>
-                <Dropdown overlay={menu}>
-                    <a>
-                        用户名 <DownOutlined />
-                    </a>
-                </Dropdown>
-            </div>
+            <Dropdown overlay={menu}>
+                <div className={styles.user}>
+                    <span className={styles.avator}></span>
+                    <div>用户名 <DownOutlined /></div>
+                </div>
+            </Dropdown>
         </div>
     )
 }

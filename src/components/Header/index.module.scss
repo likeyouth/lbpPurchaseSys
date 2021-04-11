@@ -1,16 +1,28 @@
 .header {
     height: 50px;
     width: 100%;
-    background-color: #3E4957;
+    background-color: #fff;
+    box-shadow: 1px 1px 3px rgb(248, 248, 248);
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
-    padding-left: 20px;
     padding-right: 20px;
-    font-size: 18px;
-    color: #F3F2F6;
-    a {
-        color: #B8B8B8;
+    margin-bottom: 15px;
+    .user {
+        color: rgb(37, 122, 241);
         font-size: 14px;
+        display: flex;
+        align-items: center;
+        .avator {
+            display: inline-block;
+            background-image: url('../../assets/avatar.png');
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-position: center center;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            margin-right: 5px;
+        }
     }
 }
