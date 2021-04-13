@@ -3,7 +3,6 @@ import styles from './index.module.scss';
 import Card from '@/components/Card';
 import { Pagination, Input } from 'antd';
 const { Search } = Input;
-import { AudioOutlined } from '@ant-design/icons';
 
 const goodlist = [
     { id: 1, name: '防护手套', amount: 100, unit: '双', date: '2020-04-11' },
@@ -17,15 +16,6 @@ const goodlist = [
     { id: 9, name: '安全帽', amount: 100, unit: '个', date: '2020-04-11' },
     { id: 10, name: '防毒面具', amount: 100, unit: '个', date: '2020-04-11' }
 ]
-
-const suffix = (
-    <AudioOutlined
-        style={{
-            fontSize: 16,
-            color: '#1890ff',
-        }}
-    />
-);
 
 export default function GoodLIst() {
     const onSearch = value => console.log(value);

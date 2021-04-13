@@ -6,6 +6,18 @@ import Login from '@/pages/Login';
 import GoodsList from '@/pages/department/GoodList';
 import ApplyList from '@/pages/department/ApplyList';
 
+// 库存管理员
+import OrderForm from '@/pages/storage/OrderForm';
+import GoodsManage from '@/pages/storage/GoodsManage';
+
+// 系统管理员
+import Order from '@/pages/admin/OrderForm';
+import UserManage from '@/pages/admin/UserManage';
+import OrderDetail from '@/pages/admin/OrderDetail';
+
+// 采购员
+import Supplier from '@/pages/buyer/Supplier';
+
 const routerConfig = [
   {
     path: '/login',
@@ -31,6 +43,39 @@ const routerConfig = [
       {
         path: '/department/apply',
         component: ApplyList,
+        exact: true
+      },
+      // 库存管理员路由
+      {
+        path: '/storage/orderForm',
+        component: OrderForm,
+        exact: true
+      },
+      {
+        path: '/storage/goodsManage',
+        component: GoodsManage,
+        exact: true
+      },
+      // 系统管理员路由
+      {
+        path: '/admin/orderForm',
+        component: Order,
+        exact: true
+      },
+      {
+        path: '/admin/userManage',
+        component: UserManage,
+        exact: true
+      },
+      {
+        path: '/admin/orderTail',
+        component: OrderDetail,
+        exact: true
+      },
+      // 采购员
+      {
+        path: '/buyer/supplier',
+        component: Supplier,
         exact: true
       }
     ]

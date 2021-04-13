@@ -1,0 +1,30 @@
+@import '@/assets/css/title.module.scss';
+.goodsManage {
+    background-color: #fff;
+    margin-right: 10px;
+    border-radius: 10px;
+    box-shadow: 0px 1px 2px 0px rgba(219, 219, 219, 40);
+    opacity: 0.87;
+    min-height: 50vh;
+    padding: 15px 20px;
+    .search {
+        margin-bottom: 10px;
+    }
+    .list {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .pagination {
+        margin-top: 15px;
+        text-align: right;
+        padding-right: 20px;
+    }
+    .upload-list-inline .ant-upload-list-item {
+        float: left;
+        width: 200px;
+        margin-right: 8px;
+    }
+    .upload-list-inline [class*='-upload-list-rtl'] .ant-upload-list-item {
+        float: right;
+    }
+}

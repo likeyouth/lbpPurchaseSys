@@ -4,6 +4,14 @@ import { ShoppingCartOutlined, EditOutlined } from '@ant-design/icons';
 
 export default function Card(props) {
     const goods = props.goods
+    const handleClick = () => {
+        if(props.isEdit) {
+            // 录入劳保品
+            props.editGoods(goods)
+        } else {
+            // 加入申请列表
+        }
+    }
     return(
         <div className={styles.card}>
             <div className={styles.img}>
@@ -13,7 +21,7 @@ export default function Card(props) {
                 <h4>{goods.name}</h4>
                 <p>数量：{goods.amount}</p>
                 <p>日期：{goods.date}</p>
-                <p className={styles.icon}><EditOutlined style={{color: 'rgb(0,0,0,.7)'}} /></p>
+                <p className={styles.icon}>{props.isEdit ? <EditOutlined style={{color: 'rgb(0,0,0,.7)'}} onClick={() => {handleClick()}}/> : <ShoppingCartOutlined style={{color: 'rgb(0,0,0,.7)'}} onClick={() => {handleClick()}}/>}</p>
             </div>
         </div>
     )
