@@ -17,6 +17,11 @@ import OrderDetail from '@/pages/admin/OrderDetail';
 
 // 采购员
 import Supplier from '@/pages/buyer/Supplier';
+import ApprovalList from '@/pages/buyer/ApprovalList';
+import OrderManage from '@/pages/buyer/OrderForm';
+import Plane from '@/pages//buyer/Plane';
+import PlaneDetail from '@/pages/buyer/Plane/PlaneDetail';
+import SupplierStatistic from '@/pages/buyer/Statistics/Supplier';
 
 const routerConfig = [
   {
@@ -76,6 +81,31 @@ const routerConfig = [
       {
         path: '/buyer/supplier',
         component: Supplier,
+        exact: true
+      },
+      {
+        path: '/buyer/approvalList',
+        component: ApprovalList,
+        exact: true
+      },
+      {
+        path: '/buyer/orderManage',
+        component: OrderManage,
+        exact: true
+      },
+      {
+        path: '/buyer/plane',
+        component: Plane,
+        exact: true
+      },
+      {
+        path: '/buyer/planeDetail',
+        component: PlaneDetail,
+        exact: true
+      },
+      {
+        path: '/buyer/supplierStatistic',
+        component: SupplierStatistic,
         exact: true
       }
     ]

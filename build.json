@@ -1,3 +1,19 @@
 {
-  "plugins": []
+    "publicPath": "./",
+    "plugins": [
+        [
+            "build-plugin-antd",
+            {
+                "themeConfig": {
+                    "primary-color": "#517DFD",
+                    "border-radius-base": "3px",
+                    "menu-inline-submenu-bg": "rgba(255,255,255, .8)"
+                },
+                "importOptions": {
+                    "libraryDirectory": "es",
+                    "style": true
+                }
+            }
+        ]
+    ]
 }

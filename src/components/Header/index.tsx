@@ -15,7 +15,7 @@ export default function() {
             <Dropdown overlay={menu}>
                 <div className={styles.user}>
                     <span className={styles.avator}></span>
-                    <div>用户名 <DownOutlined /></div>
+                    <div><a>用户名</a> <DownOutlined /></div>
                 </div>
             </Dropdown>
         </div>

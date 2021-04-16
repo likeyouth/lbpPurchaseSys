@@ -1,0 +1,38 @@
+@import '@/assets/css/title.module.scss';
+.supplier {
+    height: calc(100% - 75px);
+    display: flex;
+    padding-right: 10px;
+    justify-content: space-between;
+    .form {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+    }
+    .left {
+        width: 70%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        .top {
+            height: 49%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 3px;
+            position: relative;
+        }
+        .bottom {
+            height: 49%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 3px;
+            position: relative;
+        }
+    }
+    .right {
+        width: 29%;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 3px;
+    }
+}
