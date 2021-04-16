@@ -22,6 +22,7 @@ import OrderManage from '@/pages/buyer/OrderForm';
 import Plane from '@/pages//buyer/Plane';
 import PlaneDetail from '@/pages/buyer/Plane/PlaneDetail';
 import SupplierStatistic from '@/pages/buyer/Statistics/Supplier';
+import OrderStatistic from '@/pages/buyer/Statistics/OrderForm';
 
 const routerConfig = [
   {
@@ -106,6 +107,11 @@ const routerConfig = [
       {
         path: '/buyer/supplierStatistic',
         component: SupplierStatistic,
+        exact: true
+      },
+      {
+        path: '/buyer/orderStatistic',
+        component: OrderStatistic,
         exact: true
       }
     ]

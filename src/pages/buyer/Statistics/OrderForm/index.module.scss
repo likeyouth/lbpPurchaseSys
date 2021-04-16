@@ -1,0 +1,42 @@
+.orderStatistic {
+    padding-right: 10px;
+    .card {
+        display: flex;
+        justify-content: space-between;
+        .cardItem {
+            width: 19%;
+            height: 130px;
+            box-shadow: 1px 1px 3px rgb(248, 248, 248);
+            border-radius: 3px;
+            background-color: #fff;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            .icon {
+                height: 90px;
+                width: 90px;
+                background-image: url('../../../../assets/医用口罩.png');
+                background-position: center center;
+                background-size: 100%;
+            }
+            .text {
+                margin-top: 5px;
+                height: 80px;
+                width: 100px;
+                text-align: right;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                .title {
+                    font-size: 16px;
+                    color: #8C8C8C;
+                }
+                .number {
+                    color: #666666;
+                    font-size: 20px;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+}
