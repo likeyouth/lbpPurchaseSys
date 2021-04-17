@@ -1,13 +1,29 @@
 @import '@/assets/css/title.module.scss';
-.userManage {
+.goodsStatistic {
     background-color: #fff;
     margin-right: 10px;
     border-radius: 10px;
     box-shadow: 0px 1px 2px 0px rgba(219, 219, 219, 40);
     opacity: 0.87;
-    min-height: 50vh;
+    height: calc(100% - 80px);
     padding: 15px 20px;
-    .form {
-        margin-bottom: 10px;
+    .pieContainer {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        .pieArea {
+            width: 10%;
+            margin-bottom: 20px;
+            height: 120px;
+        }
+    }
+    .chartTitle {
+        margin-top: 20px;
+        color: rgba(87, 160, 255);
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
     }
 }

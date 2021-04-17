@@ -3,12 +3,12 @@ import ReactEcharts from 'echarts-for-react';
 
 export default function EchartsBar(props) {
     // data : [{name: "供应商", value: 50}, {name: "供应商", value: 50}]
-    const { data, percent } = props;
+    const { data } = props;
     var option = {
         grid: {
             left: 20,
             top: 30,
-            bottom: 50,
+            bottom: 0,
             right: 30,
             containLabel: true
         },
@@ -38,9 +38,9 @@ export default function EchartsBar(props) {
             //     return '<div class="tooltip" style="height:0.4rem"><div class="item" style="height:50%"><p><span style="background-color: #4292FD;"></span><span>' + data[0].seriesName + '</span></p><p>' + data[0].value + '万元</p></div><div class="item" style="height:50%"><p><span style="background-color: #F6DB96;"></span><span>同比</span></p><p>' + data[1].value + '%</p></div></div>';
             // }
         },
-        color: ["#F6DB96", "#2EC7C9"],
+        color: ["gold"],
         legend: {
-            data: [{name: '销售额', icon: 'circle', textStyle: {color: '#444'}},{name: '占比', textStyle: {color: '#444'}}],
+            data: [{name: '金额', textStyle: {color: '#444'}}],
             top: 0,
             right: 'center',
             textStyle: {
@@ -104,50 +104,19 @@ export default function EchartsBar(props) {
                     fontSize: 12
                 }
             }
-
-        }, {
-            type: "value",
-            position: 'right',
-            splitLine: {
-                show: false
-            },
-            axisTick: {
-                show: false
-            },
-            axisLine: {
-                show: false
-            },
-            axisLabel: {
-                show: false,
-                formatter: "{value} %",
-                textStyle: {
-                    color: "#444",
-                    fontSize: 12
-                }
-            }
-
         }],
         series: [{
-            name: "销售额",
-            type: "bar",
-            barWidth: 15,
-            itemStyle: {
-                normal: {
-                    color: '#5AB1EF',
-                    "barBorderRadius": [50, 50, 50, 50],
-                }
-            },
-            data: data
-        }, {
-            name: "占比",
+            name: "金额",
             type: "line",
-            yAxisIndex: 1,
             smooth: 0.3,
             showAllSymbol: true, //显示所有图形。
             symbol: "emptycircle",
             symbolSize: 6,
             emphasis: {
                 focus: 'series'
+            },
+            areaStyle: {
+                color: 'rgba(255, 227, 76,.9)'
             },
             lineStyle: {
                 color: '#2EC7C9',
@@ -158,7 +127,7 @@ export default function EchartsBar(props) {
                     color: '#2EC7C9'
                 }
             },
-            data: percent
+            data: data
         }]
     };
     return (

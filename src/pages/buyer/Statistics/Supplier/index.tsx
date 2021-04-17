@@ -128,8 +128,8 @@ export default function Supplier() {
                     </div>
                     <div className={styles.pieContainer}>
                         {
-                            pieData.map(item => {
-                                return <div className={styles.pieArea}><Pie data={item}/></div>
+                            pieData.map((item,index) => {
+                                return <div key={index} className={styles.pieArea}><Pie data={item}/></div>
                             })
                         }
                     </div>

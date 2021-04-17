@@ -14,7 +14,7 @@ export default function BasicLayout({children} : {children: React.ReactNode}) {
                     <div className={styles.logo}></div>
                     <h4>劳保品管理系统</h4>
                 </div>
-                <Menu role='采购员' />
+                <Menu role='系统管理员' />
             </div>
             <div className={styles.right}>
                 <Header />

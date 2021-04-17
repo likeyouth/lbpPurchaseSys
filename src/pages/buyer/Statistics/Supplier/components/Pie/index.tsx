@@ -4,7 +4,6 @@ import ReactEcharts from 'echarts-for-react';
 export default function Pie(props) {
     // data : [{name: "供应商", value: 50}, {name: "供应商", value: 50}]
     const {data} = props;
-    console.log(data)
     // const data2 = {name: '', value:100 - data1.value}
     let barColor = data.value > 80 ? 'rgb(143, 188, 135)' :  data.value > 60 ? 'rgb(90, 177, 239)' : 'rgb(210, 93, 73)'
     var option = {
@@ -24,6 +23,8 @@ export default function Pie(props) {
             {
                 name:'pie',
                 type: 'pie',
+                // center: ["50%", "15%"],
+                // radius: ["42%", "50%"],
                 center: ["50%", "15%"],
                 radius: ["42%", "50%"],
                 avoidLabelOverlap: false,

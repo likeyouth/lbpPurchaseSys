@@ -1,33 +1,54 @@
+@import '@/assets/css/title.module.scss';
 .orderStatistic {
+    height: calc(100% - 75px);
     padding-right: 10px;
     .card {
         display: flex;
         justify-content: space-between;
+        margin-bottom: 20px;
         .cardItem {
-            width: 19%;
-            height: 130px;
-            box-shadow: 1px 1px 3px rgb(248, 248, 248);
+            width: 16%;
+            height: 100px;
+            box-shadow: 1px 1px 5px rgb(248, 248, 248);
             border-radius: 3px;
             background-color: #fff;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             .icon {
-                height: 90px;
-                width: 90px;
-                background-image: url('../../../../assets/医用口罩.png');
+                height: 70px;
+                width: 70px;
                 background-position: center center;
                 background-size: 100%;
+                background-repeat: no-repeat;
+            }
+            .icon1 {
+                background-image: url('../../../../assets/hat.png');
+            }
+            .icon2 {
+                background-image: url('../../../../assets/医用口罩.png');
+            }
+            .icon3 {
+                background-image: url('../../../../assets/面性防护服施工.png');
+            }
+            .icon4 {
+                background-image: url('../../../../assets/防护鞋.png');
+            }
+            .icon5 {
+                background-image: url('../../../../assets/必须戴防毒面具.png');
+            }
+            .icon6 {
+                background-image: url('../../../../assets/安全带.png');
             }
             .text {
-                margin-top: 5px;
-                height: 80px;
+                height: 70px;
                 width: 100px;
                 text-align: right;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                .title {
+                .titleText {
                     font-size: 16px;
                     color: #8C8C8C;
                 }
@@ -37,6 +58,17 @@
                     font-weight: bold;
                 }
             }
+        }
+    }
+    .graph {
+        padding: 10px;
+        background-color: #fff;
+        height: calc(100% - 130px);
+        border-radius: 5px;
+        .chart {
+            margin-top: 20px;
+            height: 80%;
+            padding-top: 40px;
         }
     }
 }
