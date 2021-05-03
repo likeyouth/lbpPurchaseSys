@@ -88,12 +88,13 @@ export default function GoodManage() {
                     </Form.Item>
                     <Form.Item name="category" label="类别" rules={[{required: true, message: '请选择劳保品类别'}]}>
                         <Select style={{width: 250, marginRight: 15}} placeholder="请选择类别" onChange={onChange}>
-                            <Option value="category1">头部护具类</Option>
-                            <Option value="category2">呼吸护具类</Option>
-                            <Option value="category3">眼(面)护具类</Option>
-                            <Option value="category4">防护服类</Option>
-                            <Option value="category5">防护鞋类</Option>
-                            <Option value="category6">防坠落护具类</Option>
+                            <Option value={1}>头部护具类</Option>
+                            <Option value={2}>呼吸护具类</Option>
+                            <Option value={3}>眼(面)护具类</Option>
+                            <Option value={4}>防护服类</Option>
+                            <Option value={5}>防护鞋类</Option>
+                            <Option value={6}>防坠落护具类</Option>
+                            <Option value={7}>其他</Option>
                         </Select>
                     </Form.Item>
                     <Form.Item name="unit" label="单位" rules={[{required: true, message: '请输入劳保品单位'}]}>

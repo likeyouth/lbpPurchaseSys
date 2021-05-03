@@ -1,4 +1,4 @@
-import { runApp, IAppConfig, config } from 'ice';
+import { runApp, IAppConfig, config, history } from 'ice';
 import React from 'react';
 import { message } from 'antd';
 
@@ -26,6 +26,10 @@ const appConfig: IAppConfig = {
           // 发送请求前：可以对 RequestConfig 做一些统一处理
           // eslint-disable-next-line no-param-reassign
           // config.headers = { a: 1 };
+          console.log(window.location.href);
+          if(!window.location.href.includes('/login')) {
+            config.headers.token = sessionStorage.getItem('token');
+          }
           return config;
         },
         onError: (error) => {
@@ -36,7 +40,11 @@ const appConfig: IAppConfig = {
         onConfig: (response) => {
           // 请求成功：可以做全局的 toast 展示，或者对 response 做一些格式化
           // console.log(response.data)
-          if (Number(response.data.code) !== 600) {
+          if(Number(response.data.code) === 401) {
+              history.push('/login');
+              return Promise.reject(response.data.msg);
+          }
+          if (Number(response.data.code) !== 200) {
             message.error(response.data.msg);
             return Promise.reject(response.data.msg)
           }
