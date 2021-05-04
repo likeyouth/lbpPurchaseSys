@@ -3,7 +3,7 @@ import styles from './index.module.scss';
 import Header from '@/components/Header';
 import Menu from '@/components/Menu';
 import zhCN from 'antd/es/locale/zh_CN';
-import {ConfigProvider, message} from 'antd';
+import {ConfigProvider} from 'antd';
 import { useHistory } from 'ice';
 
 export default function BasicLayout({children} : {children: React.ReactNode}) {
@@ -12,7 +12,6 @@ export default function BasicLayout({children} : {children: React.ReactNode}) {
     useEffect(() => {
         const token = sessionStorage.getItem('token');
         if(!token) {
-            message.error('未取得登录信息,请先登录');
             history.push('/login')
         }
     }, [])
@@ -60,7 +59,6 @@ export default function BasicLayout({children} : {children: React.ReactNode}) {
                     hash.includes('storage') ? history.push(hash) :  history.push('/storage/goodsManage');
                     break;
                 default:
-                    message.error('没有权限！');
                     break;
             }
         }

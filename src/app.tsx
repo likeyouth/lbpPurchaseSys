@@ -26,8 +26,8 @@ const appConfig: IAppConfig = {
           // 发送请求前：可以对 RequestConfig 做一些统一处理
           // eslint-disable-next-line no-param-reassign
           // config.headers = { a: 1 };
-          console.log(window.location.href);
-          if(!window.location.href.includes('/login')) {
+          const requestUrl = config.url;
+          if(requestUrl !== '/login') {
             config.headers.token = sessionStorage.getItem('token');
           }
           return config;

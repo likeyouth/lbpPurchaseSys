@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'ice';
 import styles from './index.module.scss';
-import { Menu, message} from 'antd';
+import { Menu } from 'antd';
 import {
     ShopOutlined,
     UsergroupAddOutlined,
@@ -45,7 +45,7 @@ export default function (props) {
 
         return (
             <div className={styles.menu}>
-                <Menu defaultOpenKeys={['cggl', 'tjfx']} mode="inline">
+                <Menu defaultSelectedKeys={['lbpgl', 'cgsp', 'lbyplb', 'yggl']} defaultOpenKeys={['cggl', 'tjfx']} mode="inline">
                     {renderMenu(props.role)}
                 </Menu>
             </div>
