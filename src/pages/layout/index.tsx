@@ -1,12 +1,14 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from './index.module.scss';
 import Header from '@/components/Header';
 import Menu from '@/components/Menu';
+import service from '@/service/service';
 import zhCN from 'antd/es/locale/zh_CN';
 import {ConfigProvider} from 'antd';
 import { useHistory } from 'ice';
 
 export default function BasicLayout({children} : {children: React.ReactNode}) {
+    const [userInfo, setUserInfo] = useState<{username}>({username: ''});
     const roleId:number = Number(sessionStorage.getItem('roleId'))
     const history = useHistory()
     useEffect(() => {
@@ -15,6 +17,17 @@ export default function BasicLayout({children} : {children: React.ReactNode}) {
             history.push('/login')
         }
     }, [])
+
+    const getUserinfo = () => {
+        const userId = Number(sessionStorage.getItem('userId'));
+        service.getUserInfo({userId: userId}).then(res => {
+            setUserInfo(res);
+        })
+    }
+
+    useEffect(() => {
+        getUserinfo();
+    },[])
 
     const selectRole = (roleId) => {
         switch(roleId) {
@@ -78,7 +91,7 @@ export default function BasicLayout({children} : {children: React.ReactNode}) {
                 <Menu role={roleId} />
             </div>
             <div className={styles.right}>
-                <Header />
+                <Header getUserinfo={getUserinfo} userInfo={userInfo} />
                 {children}
             </div>
         </div>

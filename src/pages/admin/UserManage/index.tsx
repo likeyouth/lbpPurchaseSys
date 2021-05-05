@@ -1,6 +1,7 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef,useMemo, useEffect} from 'react';
 import styles from './index.module.scss';
-import {Table, Input, Button, Modal, Form, Radio, Select } from 'antd';
+import service from '@/service/service';
+import {Table, Input, Button, Modal, Form, Radio, Select, message } from 'antd';
 
 const {Search} = Input;
 const {confirm} = Modal;
@@ -12,54 +13,69 @@ const layout = {
 };
 
 export default function UserManage () {
-    const [total, setTotal] = useState<number>(100);
+    const [total, setTotal] = useState<number>(0);
+    const [data, setData] = useState([]);
     const [visible, setVisible] = useState<boolean>(false);
-    const [form] = Form.useForm()
+    const [isEdit, setIsEdit] = useState<boolean>(false);
+    const [form] = Form.useForm();
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
+        username: ''
     });
+    const initialValue = useMemo(() => ({username: '', sex: 0, description: '', roleId: 1, password: 123456, dept: '', nickname: ''}), [])
 
     const columns = [
         {
             title: '序号',
             dataIndex: 'order',
-            width: '10%'
+            width: '6%',
+            key: 'order'
         },
         {
             title: '姓名',
-            dataIndex: 'name',
+            dataIndex: 'username',
             // width: '15%'
         },
         {
             title: '性别',
-            dataIndex: 'gender'
+            dataIndex: 'sex',
+            key: 'sex',
+            render: (sex) => (
+                sex === 0? '男' : '女'
+            )
         },
         {
-            title: '工号',
-            dataIndex: 'userNo',
+            title: '昵称',
+            dataIndex: 'nickname',
+            key: 'nickname'
             // width: '10%'
         },
         {
             title: '密码',
             dataIndex: 'password',
+            key: 'password'
             // width: '10%'
         },
         {
             title: '角色',
             dataIndex: 'role',
+            key: 'role'
         },
         {
-            title: '备注',
-            dataIndex: 'remark',
+            title: '描述',
+            dataIndex: 'description',
+            key: 'description'
         },
         {
             title: '创建时间',
-            dataIndex: 'time',
+            dataIndex: 'createdAt',
+            key: 'createdAt'
         },
         {
             title: '操作',
             dataIndex: 'operate',
+            key: 'operate',
             // width: '10%',
             render: (op, row) => (
                 <div>
@@ -70,67 +86,111 @@ export default function UserManage () {
             )
         }
     ]
-    const data:any[] = [];
-    for(let i=0; i<100; i++) {
-        data.push({
-            key: i,
-            order: i+1,
-            name: `员工${i+1}`,
-            gender: '女',
-            userNo: 192039093+i,
-            password: '12345',
-            role: '采购员',
-            remark: '负责XXX',
-            time: '2020-04-12',
-            operate: ['编辑', '删除']
-        })
-    }
     const handleSearch = val => {
-        console.log(val)
+        query.current.username = val;
+        query.current.pageIndex = 1;
+        getUser({pageIndex: 1, pageSize: query.current.pageSize, username: val});
     }
     const handleClick = (index, row) => {
+        console.log(row);
         if(index === 1) {
             confirm({
                 content: '确认删除该员工吗？',
                 onOk() {
-                    console.log('删除了')
+                    service.deleteUser({userId: row.userId}).then(res => {
+                        if(res.code === 200) {
+                            message.info('删除成功');
+                            getUser(query.current);
+                        } else {
+                            message.info('删除失败，请稍后重试！');
+                        }
+                    })
                 }
             })
         } else {
-            form.setFieldsValue(row)
-            setVisible(true)
+            form.setFieldsValue(row);
+            setIsEdit(true);
+            setVisible(true);
         }
     }
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
-        query.current.pageSize = pageSize
-        query.current.pageIndex = 1
+        query.current.pageSize = pageSize;
+        query.current.pageIndex = 1;
+        getUser({pageIndex: 1, pageSize: pageSize, username: query.current.username});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
         query.current.pageIndex = page
+        getUser({pageIndex: page, pageSize: query.current.pageSize, username: query.current.username});
+    }
+
+    const getRole = (roleId) => {
+        switch(roleId) {
+            case 1: return '系统管理员';
+            case 2: return '采购员';
+            case 3: return '部门管理员';
+            case 4: return '库存管理员';
+            default: return '';
+        }
     }
 
     const handleOk = () => {
-        form.setFieldsValue({name: '', gender: '', remark: '', role: '', password: '', userNo: ''})
-        setVisible(false)
+        form.validateFields().then(values => {
+            values.role = getRole(values.roleId);
+            if(isEdit) {
+                service.updateUser(values).then(res => {
+                    if(res.code === 200) {
+                        message.info('修改成功');
+                        form.setFieldsValue(initialValue);
+                        getUser(query.current);
+                        setVisible(false);
+                    } else {
+                        message.info('修改失败，请稍后重试！');
+                    }
+                })
+            } else {
+                service.addUser(values).then(res => {
+                    if(res.code === 200) {
+                        message.info('添加成功');
+                        form.setFieldsValue(initialValue);
+                        getUser({pageIndex: 1, pageSize: query.current.pageSize});
+                        setVisible(false)
+                    }
+                }).catch(err => {
+                    console.log(err);
+                })
+            }
+        }).catch(err => {
+            console.log(err);
+        })
     }
 
-    const handleAdd = () => {
-        setVisible(true)
+    const getUser = (query?) => {
+        query = query || {pageSize: 10, pageIndex: 1};
+        service.getUser(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        })
     }
+
+    useEffect(() => {
+        getUser();
+    }, [])
+
     return(
         <div className={styles.userManage}>
             <h4 className={styles.title}>员工管理</h4>
             <div className={styles.form}>
                 <Search style={{width: 250, marginRight: 15}} placeholder="请输入员工名称" enterButton onSearch={handleSearch} />
-                <Button onClick={() => {handleAdd()}} type="primary">新增员工</Button>
+                <Button onClick={() => {
+                    setVisible(true);
+                    setIsEdit(false);
+                    }} type="primary">新增员工</Button>
             </div>
             <Table
                 size="small"
                 bordered
-                scroll={{ y: 400 }}
+                scroll={{ y: 450 }}
                 dataSource={data}
                 columns={columns}
                 pagination={{
@@ -138,44 +198,50 @@ export default function UserManage () {
                     showQuickJumper: true,
                     onChange: onPageChange,
                     onShowSizeChange: showSizeChanger,
+                    showSizeChanger: true,
                     showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
                 }}></Table>
                 <Modal title="添加员工" visible={visible}
                 onOk={handleOk}
                 onCancel={() => {
-                    form.setFieldsValue({name: '', gender: '', remark: '', role: '', password: '', userNo: ''})
+                    form.setFieldsValue(initialValue);
                     setVisible(false)
                 }}
                 okText="确认" cancelText="取消">
-                    <Form form={form} {...layout}>
-                        <Form.Item name="name" label="姓名" rules={[{required: true, message: '请输入姓名'}]}>
+                    <Form initialValues={initialValue} form={form} {...layout}>
+                        <Form.Item name="userId" label="userid" style={{display: 'none'}}>
                             <Input placeholder="请输入姓名" />
                         </Form.Item>
-                        <Form.Item name="userNo" label="工号" rules={[{required: true, message: '请输入工号'}]}>
-                            <Input placeholder="请输入工号" />
+                        <Form.Item name="username" label="姓名" rules={[{required: true, message: '请输入姓名'}]}>
+                            <Input placeholder="请输入姓名" />
                         </Form.Item>
                         <Form.Item name="password" label="密码" rules={[{required: true, message: '请输入密码'}]}>
                             <Input placeholder="请输入密码" />
                         </Form.Item>
-                        <Form.Item name="gender" label="性别" rules={[{required: true, message: '请输入姓名'}]}>
+                        <Form.Item name="dept" label="部门" rules={[{required: true, message: '请输入部门'}]}>
+                            <Input placeholder="请输入部门名称" />
+                        </Form.Item>
+                        <Form.Item name="sex" label="性别" rules={[{required: true}]}>
                             <Radio.Group>
-                                <Radio value='男'>男</Radio>
-                                <Radio value='女'>女</Radio>
+                                <Radio value={0}>男</Radio>
+                                <Radio value={1}>女</Radio>
                             </Radio.Group>
                         </Form.Item>
-                        <Form.Item name="role" label="角色" rules={[{required: true, message: '请输入密码'}]}>
+                        <Form.Item name="roleId" label="角色" rules={[{required: true, message: '选择角色'}]}>
                             <Select>
-                                <Option value="0">系统管理员</Option>
-                                <Option value="1">部门管理员</Option>
-                                <Option value="3">采购员</Option>
-                                <Option value="4">库存管理员</Option>
+                                <Option value={1}>系统管理员</Option>
+                                <Option value={3}>部门管理员</Option>
+                                <Option value={2}>采购员</Option>
+                                <Option value={4}>库存管理员</Option>
                             </Select>
                         </Form.Item>
-                        <Form.Item name="remark" label="备注">
+                        <Form.Item name="nickname" label="昵称">
+                            <Input placeholder="请输入昵称" />
+                        </Form.Item>
+                        <Form.Item name="description" label="描述">
                             <TextArea
-                            placeholder="请输入申请原因"
-                            autoSize={{ minRows: 2, maxRows: 6 }}
-                            onChange={(value) => console.log(value)} />
+                            placeholder="请输入员工描述"
+                            autoSize={{ minRows: 2, maxRows: 6 }} />
                         </Form.Item>
                     </Form>
                 </Modal>
