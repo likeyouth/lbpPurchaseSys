@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import styles from './index.module.scss';
 import { Menu, Dropdown } from 'antd';
 import { Modal, Form, Radio, message, Input, Select} from 'antd';
@@ -14,7 +14,19 @@ const layout = {
 export default function(props) {
     const [form] = Form.useForm();
     const [visible, setVisible] = useState<boolean>(false);
-    console.log(props)
+    const [userInfo, setUserInfo] = useState<{username, roleId, userId}>({username: '',roleId: 0, userId: 0});
+
+
+    const getUserinfo = () => {
+        const userId = Number(sessionStorage.getItem('userId'));
+        service.getUserInfo({userId: userId}).then(res => {
+            setUserInfo(res);
+        })
+    }
+
+    useEffect(() => {
+        getUserinfo();
+    },[])
     const menu = (
         <Menu>
             <Menu.Item onClick={() => {setVisible(true)}}>编辑资料</Menu.Item>
@@ -23,11 +35,11 @@ export default function(props) {
     )
     const handleOk = () => {
         form.validateFields().then(values => {
-            values.userId = props.userInfo.userId;
+            values.userId = userInfo.userId;
             service.updateUser(values).then(res => {
                 if(res.code === 200) {
                     message.info('修改成功');
-                    props.getUserinfo();
+                    getUserinfo();
                     setVisible(false);
                 } else {
                     message.info('修改失败，请稍后重试！');
@@ -40,7 +52,7 @@ export default function(props) {
             <Dropdown overlay={menu}>
                 <div className={styles.user}>
                     <span className={styles.avator}></span>
-                    <div><a>{props.userInfo.username}</a> <DownOutlined /></div>
+                    <div><a>{userInfo.username}</a> <DownOutlined /></div>
                 </div>
             </Dropdown>
             <Modal title="添加员工" visible={visible}
@@ -49,7 +61,7 @@ export default function(props) {
                     setVisible(false)
                 }}
                 okText="确认" cancelText="取消">
-                    <Form initialValues={props.userInfo} form={form} {...layout}>
+                    <Form initialValues={userInfo} form={form} {...layout}>
                         <Form.Item name="username" label="姓名" rules={[{required: true, message: '请输入姓名'}]}>
                             <Input placeholder="请输入姓名" />
                         </Form.Item>
@@ -63,7 +75,7 @@ export default function(props) {
                             </Radio.Group>
                         </Form.Item>
                         <Form.Item name="roleId" label="角色" rules={[{required: true, message: '选择角色'}]}>
-                            <Select disabled={props.userInfo.roleId !== 1}>
+                            <Select disabled={userInfo.roleId !== 1}>
                                 <Option value={1}>系统管理员</Option>
                                 <Option value={3}>部门管理员</Option>
                                 <Option value={2}>采购员</Option>

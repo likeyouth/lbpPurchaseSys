@@ -47,8 +47,27 @@ export default {
         return res;
     },
     async getUserInfo(query) {
-        console.log(query);
         const res = await request.get('/user/getInfo', {params: query});
         return res.data;
+    },
+    async getSuppliers(query) {
+        const res = await request.get('/supplier', {params: query});
+        const data = res.data.list?.map((item, index) => ({...item, order: (query.pageIndex -1) * query.pageSize + index+1, key: item.supplierId, operate: ['编辑','删除']}));
+        return {
+            data,
+            total: res.data.total
+        }
+    },
+    async deleteSupplier(body) {
+        const res = await request.post('/supplier/deleteSupplier', body);
+        return res;
+    },
+    async addSupplier(body) {
+        const res = await request.post('/supplier/addSupplier', body);
+        return res;
+    },
+    async updateSupplier(body) {
+        const res = await request.put('/supplier/updateSupplier', body);
+        return res;
     }
 }

@@ -1,6 +1,7 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import styles from './index.module.scss';
-import {Table, Input, Button, Modal, Form } from 'antd';
+import service from '@/service/service';
+import {Table, Input, Button, Modal, Form, message } from 'antd';
 const {Search, TextArea} = Input;
 const {confirm} = Modal;
 
@@ -11,53 +12,85 @@ const layout = {
 
 export default function Supplier () {
     const [total, setTotal] = useState<number>(100);
+    const [data, setData] = useState([]);
     const [visible, setVisible] = useState<boolean>(false);
-    const [form] = Form.useForm()
+    const [isEdit, setIsEdit] = useState<boolean>(false);
+    const [form] = Form.useForm();
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
+        supplierName: ''
     });
 
     const columns = [
         {
             title: '序号',
             dataIndex: 'order',
-            width: '5%'
+            width: '5%',
+            key: 'order'
         },
         {
             title: '供应商名称',
-            dataIndex: 'name',
-            // width: '15%'
+            dataIndex: 'supplierName',
+            key: 'supplierName',
+            width: '10%',
+            ellipsis: true,
+        },
+        {
+            title: '联系人',
+            dataIndex: 'contact',
+            key: 'contact',
+            width: '8%'
         },
         {
             title: '公司地址',
-            dataIndex: 'address'
+            dataIndex: 'address',
+            key: 'address',
+            width: '13%',
+            ellipsis: true,
         },
         {
             title: '联系电话',
             dataIndex: 'phone',
-            // width: '10%'
+            key: 'phone',
+            width: '10%',
+            ellipsis: true,
         },
         {
             title: '邮件',
             dataIndex: 'email',
-            // width: '10%'
+            key: 'email',
+            width: '15%',
+            ellipsis: true,
+        },
+        {
+            title: '开户银行',
+            dataIndex: 'bank',
+            key: 'bank',
+            width: '7%',
+            ellipsis: true,
         },
         {
             title: '银行账户',
-            dataIndex: 'account',
+            dataIndex: 'bankNumber',
+            key: 'bankNumber',
+            width: '10%',
+            ellipsis: true,
         },
         {
             title: '备注',
             dataIndex: 'remark',
-        },
-        {
-            title: '创建时间',
-            dataIndex: 'time',
+            key: 'remark',
+            width: '10%',
+            ellipsis: true,
+            render: (remark) => (
+                !remark ? '未填写' : remark
+            )
         },
         {
             title: '操作',
             dataIndex: 'operate',
+            width: '12%',
             render: (op, row) => (
                 <div>
                     {op.map((item,index)=>{
@@ -69,63 +102,94 @@ export default function Supplier () {
             )
         }
     ]
-    const data:any[] = [];
-    for(let i=0; i<100; i++) {
-        data.push({
-            key: i,
-            order: i+1,
-            name: `供应商${i+1}`,
-            address: 'xxxxxxx',
-            phone: '10086',
-            email: '12345@qq.com',
-            account: '1234567',
-            remark: '安全类劳保品供应商',
-            time: '2020-04-12',
-            operate: ['编辑', '删除']
+
+    const getSuppliers = (query?) => {
+        query = query || {pageIndex: 1, pageSize: 10};
+        service.getSuppliers(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        }).catch(err => {
+            console.log(err)
         })
     }
+
+    useEffect(()=>{
+        getSuppliers();
+    },[])
 
     const handleClick = (index, row) => {
         if(index === 1) {
             confirm({
                 content: '确认删除吗？',
-                onOk: () => {console.log('删除了')}
+                onOk: () => {
+                    service.deleteSupplier({supplierId: row.supplierId}).then(res => {
+                        if(res.code === 200) {
+                            message.info('删除成功！');
+                            getSuppliers(query.current);
+                        }
+                    })
+                }
             })
         } else {
             form.setFieldsValue(row)
-            setVisible(true)
-            console.log(row)
+            setVisible(true);
+            setIsEdit(true);
         }
     }
-    const handleAdd = () => {
-        setVisible(true)
-    }
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
-        query.current.pageSize = pageSize
-        query.current.pageIndex = 1
+        query.current.pageIndex = 1;
+        query.current.pageSize = pageSize;
+        getSuppliers({pageIndex: 1, pageSize: pageSize, supplierName: query.current.supplierName});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
-        query.current.pageIndex = page
+        query.current.pageIndex = page;
+        getSuppliers({pageIndex: page, pageSize: query.current.pageSize, supplierName: query.current.supplierName});
+    }
+
+    const handleSearch = (val) => {
+        query.current.supplierName = val;
+        query.current.pageIndex = 1;
+        getSuppliers({pageIndex: 1, pageSize: query.current.pageSize, supplierName: val});
     }
 
     const handleOk = () => {
-        form.setFieldsValue({name: '', address: '', phone: '', email: '', account: '', remark: ''})
-        setVisible(false)
+        form.validateFields().then(values => {
+            console.log(values);
+            if(isEdit) {
+                service.updateSupplier(values).then(res => {
+                    if(res.code === 200) {
+                        message.info('更新成功！');
+                        getSuppliers(query.current);
+                        form.setFieldsValue({supplierName: '', address: '', phone: '', email: '', bank: '', remark: '', bankNumber: '', contact: ''})
+                        setVisible(false)
+                    }
+                })
+            } else {
+                service.addSupplier(values).then(res => {
+                    if(res.code === 200) {
+                        message.info('添加成功！');
+                        getSuppliers({pageIndex: 1, pageSize: query.current.pageSize, supplierName: query.current.supplierName});
+                        form.setFieldsValue({supplierName: '', address: '', phone: '', email: '', bank: '', remark: '', bankNumber: '', contact: ''})
+                        setVisible(false)
+                    }
+                })
+            }
+        }).catch(err => {console.log(err)});
     }
     return(
         <div className={styles.supplier}>
             <h4 className={styles.title}>供应商管理</h4>
-            <div className={styles.form}>
-                <Search style={{width: 250, marginRight: 15}} placeholder="请输入供应商名称" onSearch={(val) => {console.log(val)}}></Search>
-                <Button type="primary" onClick={() => {handleAdd()}}>添加供应商</Button>
+            <div className={styles.formArea}>
+                <Search style={{width: 250, marginRight: 15}} placeholder="请输入供应商名称" onSearch={handleSearch}></Search>
+                <Button type="primary" onClick={() => {
+                    setVisible(true);
+                    setIsEdit(false);}}>添加供应商</Button>
             </div>
             <Table
             size="small"
             bordered
-            scroll={{ y: 450 }}
+            scroll={{ y: 460 }}
             dataSource={data}
             columns={columns}
             pagination={{
@@ -133,6 +197,7 @@ export default function Supplier () {
                 showQuickJumper: true,
                 onChange: onPageChange,
                 onShowSizeChange: showSizeChanger,
+                showSizeChanger: true,
                 showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
             }}></Table>
             <Modal title="添加供应商" visible={visible}
@@ -143,26 +208,34 @@ export default function Supplier () {
             }}
             okText="确认" cancelText="取消">
                 <Form form={form} {...layout}>
-                    <Form.Item name="name" label="供应商名称" rules={[{required: true, message: '必填'}]}>
+                    <Form.Item name="supplierId" style={{display: 'none'}}>
                         <Input placeholder="请输入供应商名称" />
                     </Form.Item>
-                    <Form.Item name="address" label="公司地址" rules={[{required: true, message: '必填'}]}>
+                    <Form.Item name="supplierName" label="供应商名称" rules={[{required: true, message: '供应商不为空'}]}>
+                        <Input placeholder="请输入供应商名称" />
+                    </Form.Item>
+                    <Form.Item name="contact" label="联系人" rules={[{required: true, message: '联系人不为空'}]}>
+                        <Input placeholder="联系人名称" />
+                    </Form.Item>
+                    <Form.Item name="address" label="公司地址" rules={[{required: true, message: '地址不为空'}]}>
                         <Input placeholder="公司地址" />
                     </Form.Item>
-                    <Form.Item name="phone" label="联系电话" rules={[{required: true, message: '必填'}]}>
+                    <Form.Item name="phone" label="联系电话" rules={[{required: true, message: '电话不为空'}]}>
                         <Input placeholder="联系电话" />
                     </Form.Item>
-                    <Form.Item name="email" label="邮件" rules={[{required: true},{type: 'email'}]}>
+                    <Form.Item name="email" label="邮件" rules={[{required: true},{type: 'email'}, {message: '邮件不为空'}]}>
                         <Input placeholder="邮箱" />
                     </Form.Item>
-                    <Form.Item name="account" label="银行账户" rules={[{required: true, message: '必填'}]}>
+                    <Form.Item name="bank" label="开户银行" rules={[{required: true, message: '银行不为空'}]}>
+                        <Input placeholder="银行账户" />
+                    </Form.Item>
+                    <Form.Item name="bankNumber" label="银行账号" rules={[{required: true, message: '银行账号不为空'}]}>
                         <Input placeholder="银行账户" />
                     </Form.Item>
                     <Form.Item name="remark" label="备注">
                         <TextArea
                         placeholder="备注"
-                        autoSize={{ minRows: 2, maxRows: 6 }}
-                        onChange={(value) => console.log(value)} />
+                        autoSize={{ minRows: 2, maxRows: 6 }} />
                     </Form.Item>
                 </Form>
             </Modal>
