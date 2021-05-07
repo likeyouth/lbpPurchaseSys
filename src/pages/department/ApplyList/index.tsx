@@ -12,7 +12,7 @@ export default function ApplyList() {
     return(
         <div className={styles.applyList}>
             <h4 className={styles.title}>申请列表</h4>
-            <Tabs defaultActiveKey="1" onChange={tabOnChange}>
+            <Tabs defaultActiveKey="2" onChange={tabOnChange}>
                 <TabPane tab="已申请列表" key="1">
                     <Applied />
                 </TabPane>

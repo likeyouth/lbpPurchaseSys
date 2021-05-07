@@ -69,5 +69,13 @@ export default {
     async updateSupplier(body) {
         const res = await request.put('/supplier/updateSupplier', body);
         return res;
+    },
+    async addRequest(body) {
+        const res = await request.post('/request/addRequest', body);
+        return res;
+    },
+    async deleteRequest(body) {
+        const res = await request.post('/request/deleteRequest', body);
+        return res;
     }
 }

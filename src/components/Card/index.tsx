@@ -1,5 +1,7 @@
-import React  from 'react';
+import React, {useEffect}  from 'react';
 import styles from './index.module.scss';
+import service from '@/service/service';
+import {message} from 'antd';
 import { ShoppingCartOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 export default function Card(props) {
@@ -10,6 +12,14 @@ export default function Card(props) {
             index === 1 ? props.editGoods(goods) : props.deleteGoods(goods);
         } else {
             // 加入申请列表
+            const userId = Number(sessionStorage.getItem('userId'));
+            service.addRequest({userId, lbpId: goods.lbpId}).then(res => {
+                if(res.code === 200) {
+                    message.info('添加成功，请到采购申请列表中查看~');
+                } else {
+                    message.info('添加失败，请稍后重试！');
+                }
+            })
         }
     }
     const icon = (

@@ -1,5 +1,6 @@
 import React, {useState, useRef} from 'react';
 import styles from './index.module.scss';
+import service from '@/service/service';
 import { Table, Button, Modal, Form, Input, InputNumber, message } from 'antd';
 const { TextArea } = Input;
 const { confirm } = Modal;
@@ -24,11 +25,13 @@ export default function Applied(props) {
         {
             title: '序号',
             dataIndex: 'order',
-            width: '10%'
+            width: '5%',
+            key: 'order'
         },
         {
-            title: '名称',
-            dataIndex: 'name',
+            title: '劳保品名称',
+            dataIndex: 'lbpName',
+            key: 'lbpName'
             // width: '15%'
         },
         {
@@ -40,8 +43,13 @@ export default function Applied(props) {
             )
         },
         {
+            title: '规格',
+            dataIndex: 'standard',
+            key: 'standard'
+        },
+        {
             title: '申请数量',
-            dataIndex: 'amount',
+            dataIndex: 'num',
             // width: '10%'
         },
         {
@@ -58,13 +66,17 @@ export default function Applied(props) {
         }
     ]
     const data = [];
-    for(let i=0; i<100; i++) {
+    for(let i=0; i<5; i++) {
         data.push({
-            key: i,
+            key: i+1,
+            userId: 3,
+            lbpId: 6,
             order: i+1,
-            name: `劳保品${i+1}`,
+            requestId: i+1,
+            lbpName: `劳保品${i+1}`,
+            standard: '37码',
             img: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.alicdn.com%2Fimgextra%2Fi1%2FTB1oy6wcH1YBuNjSszhXXcUsFXa_%21%210-item_pic.jpg_400x400.jpg&refer=http%3A%2F%2Fimg.alicdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1620712347&t=e207916d762d25c482170755a177b447',
-            amount: 1,
+            num: 1,
             operate: ['申请', '删除']
         })
     }
@@ -75,7 +87,13 @@ export default function Applied(props) {
             confirm({
                 content: <span>该条记录将被删除，是否继续？</span>,
                 onOk() {
-                    console.log('删除')
+                    service.deleteRequest({requestId: record.requestId}).then(res => {
+                        if(res.code === 200) {
+                            message.info('删除成功');
+                        } else {
+                            message.error('删除失败，请稍后重试！');
+                        }
+                    })
                 }
             })
         } else {
@@ -119,7 +137,14 @@ export default function Applied(props) {
             confirm({
                 content: <span>确认删除选中的数据吗？</span>,
                 onOk() {
-                    console.log(selectedData)
+                    // const list = selectedData.map(item => item.requestId);
+                    service.deleteRequest({requestId: selectedData.selectedRowKeys}).then(res => {
+                        if(res.code === 200) {
+                            message.info('删除成功');
+                        } else {
+                            message.info('删除失败，请稍后重试');
+                        }
+                    })
                 }
             })
         } else {
@@ -129,27 +154,25 @@ export default function Applied(props) {
     return(
         <div className={styles.willApply}>
             <div className={styles.btns}>
-                <Button type="primary" onClick={() => handleApply()}>批量申请</Button>
+                <Button type="primary" style={{marginRight: 10}} onClick={() => handleApply()}>批量申请</Button>
                 <Button type="default" onClick={() => handleDelete()}>批量删除</Button>
             </div>
-            <div className={styles.tableArea}>
-                <Table
-                    rowSelection={{
-                        ...rowDelete,
-                    }}
-                    size="small"
-                    bordered
-                    scroll={{ y: 400 }}
-                    dataSource={data}
-                    columns={columns}
-                    pagination={{
-                        total: total,
-                        showQuickJumper: true,
-                        onChange: onPageChange,
-                        onShowSizeChange: showSizeChanger,
-                        showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
-                    }}></Table>
-            </div>
+            <Table
+            rowSelection={{
+                ...rowDelete,
+            }}
+            size="small"
+            bordered
+            scroll={{ y: 390 }}
+            dataSource={data}
+            columns={columns}
+            pagination={{
+                total: total,
+                showQuickJumper: true,
+                onChange: onPageChange,
+                onShowSizeChange: showSizeChanger,
+                showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
+            }}></Table>
             <Modal title="重新申请" visible={visible}
             onOk={handleOk}
             onCancel={() => setVisible(false)}
