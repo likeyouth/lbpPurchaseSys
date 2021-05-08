@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import styles from './index.module.scss';
 import service from '@/service/service';
 import { Table, Button, Modal, Form, Input, InputNumber, message } from 'antd';
@@ -10,13 +10,13 @@ const layout = {
     wrapperCol: { span: 20 },
 };
 
-export default function Applied(props) {
+export default function WillApply(props) {
     const [form] = Form.useForm()
-    const [total, setTotal] = useState(100);
-    const [amount, setAmount] = useState(0)
-    const [reason, setReason] = useState('')
+    const [total, setTotal] = useState(0);
+    const [data, setData] = useState([]);
     const [selectedData, setSelectedData] = useState({ selectedRowKeys: [], selectedRows: [] });
-    const [visible, setVisible] = useState(false)
+    const [visible, setVisible] = useState(false);
+    const [isMore,setIsMore] = useState<boolean>(false);
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
@@ -37,6 +37,7 @@ export default function Applied(props) {
         {
             title: '图片',
             dataIndex: 'img',
+            align: 'center',
             // width: '20%',
             render: (url, record) => (
                 <img src={url} style={{ width: 50, height: 30}}></img>
@@ -65,21 +66,6 @@ export default function Applied(props) {
             )
         }
     ]
-    const data = [];
-    for(let i=0; i<5; i++) {
-        data.push({
-            key: i+1,
-            userId: 3,
-            lbpId: 6,
-            order: i+1,
-            requestId: i+1,
-            lbpName: `劳保品${i+1}`,
-            standard: '37码',
-            img: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.alicdn.com%2Fimgextra%2Fi1%2FTB1oy6wcH1YBuNjSszhXXcUsFXa_%21%210-item_pic.jpg_400x400.jpg&refer=http%3A%2F%2Fimg.alicdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1620712347&t=e207916d762d25c482170755a177b447',
-            num: 1,
-            operate: ['申请', '删除']
-        })
-    }
 
     const handleClick = (index, record) => {
         if(index === 1) {
@@ -90,6 +76,7 @@ export default function Applied(props) {
                     service.deleteRequest({requestId: record.requestId}).then(res => {
                         if(res.code === 200) {
                             message.info('删除成功');
+                            getWillApplyList(query.current);
                         } else {
                             message.error('删除失败，请稍后重试！');
                         }
@@ -98,24 +85,54 @@ export default function Applied(props) {
             })
         } else {
             // 申请
-            setVisible(true)
+            form.setFieldsValue({requestId: record.requestId});
+            setVisible(true);
         }
     }
 
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
         query.current.pageSize = pageSize
         query.current.pageIndex = 1
+        getWillApplyList({pageIndex: 1, pageSize: pageSize});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
-        query.current.pageIndex = page
+        query.current.pageIndex = page;
+        getWillApplyList({pageIndex: page, pageSize: query.current.pageSize});
     }
 
     const handleOk = () => {
-        console.log(reason)
-        setVisible(false)
+        if(isMore) {
+            const value = form.getFieldValue('reason');
+            const requestIds = selectedData.selectedRowKeys.map(item => ({
+                requestId: item,
+                status: 1,
+                reason: value
+            }));
+            service.updateRequest({requestId: requestIds}).then(res => {
+                if(res.code === 200) {
+                    message.info('申请成功，请到申请列表查看！');
+                    getWillApplyList(query.current);
+                    setVisible(false);
+                } else {
+                    message.error('申请失败，请稍后重试！');
+                    getWillApplyList(query.current);
+                }
+            })
+        } else {
+            const values = form.getFieldsValue();
+            values.status = 1; // 将申请状态置为已申请
+            service.updateRequest(values).then(res => {
+                if(res.code === 200) {
+                    message.info('申请成功，请到申请列表查看');
+                    getWillApplyList(query.current);
+                    setVisible(false);
+                } else {
+                    message.info('申请失败，请稍后重试！');
+                }
+            })
+        }
+        setIsMore(false);
     }
 
     const rowDelete = {
@@ -127,7 +144,8 @@ export default function Applied(props) {
 
     const handleApply = () => {
         if(selectedData.selectedRowKeys.length) {
-            console.log(selectedData)
+            setIsMore(true);
+            setVisible(true);
         } else {
             message.warn('请先选择数据')
         }
@@ -141,6 +159,7 @@ export default function Applied(props) {
                     service.deleteRequest({requestId: selectedData.selectedRowKeys}).then(res => {
                         if(res.code === 200) {
                             message.info('删除成功');
+                            getWillApplyList(query.current);
                         } else {
                             message.info('删除失败，请稍后重试');
                         }
@@ -151,6 +170,22 @@ export default function Applied(props) {
             message.warn('请先选择数据')
         }
     }
+
+    const getWillApplyList = (query?) => {
+        const userId = Number(sessionStorage.getItem('userId'));
+        if(query) {
+            query.userId = userId;
+        };
+        query = query || {pageSize: 10, pageIndex: 1, userId: userId};
+        service.getWillApplyList(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        })
+    }
+
+    useEffect(() => {
+        getWillApplyList();
+    }, []);
     return(
         <div className={styles.willApply}>
             <div className={styles.btns}>
@@ -175,15 +210,19 @@ export default function Applied(props) {
             }}></Table>
             <Modal title="重新申请" visible={visible}
             onOk={handleOk}
-            onCancel={() => setVisible(false)}
+            onCancel={() => {
+                setVisible(false);
+                setIsMore(false);
+            }}
             okText="确认" cancelText="取消">
-                <Form {...layout}>
-                    <Form.Item label="申请原因" rules={[{required: true, message: '申请原因必填'}]}>
+                <Form form={form} {...layout}>
+                    <Form.Item style={{display: 'none'}} name="requestId">
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="reason" label="申请原因">
                         <TextArea
-                            value={reason}
                             placeholder="请输入申请原因"
-                            autoSize={{ minRows: 2, maxRows: 6 }}
-                            onChange={(value) => setReason(value)} />
+                            autoSize={{ minRows: 2, maxRows: 6 }} />
                     </Form.Item>
                 </Form>
             </Modal>
