@@ -12,6 +12,7 @@ export default function GoodLIst() {
     const [list,setList] = useState([]);
     const [category, setCategory] = useState([]);
     const [pageIndex, setPageIndex] = useState<number>(1);
+    const [current,setCurrent] = useState<number>(1);
     const [categoryId, setCategoryId] = useState(0);
 
     const getLbplist = (query?) => {
@@ -41,6 +42,7 @@ export default function GoodLIst() {
 
     const onPageChange = (pageIndex) => {
         setPageIndex(pageIndex);
+        setCurrent(pageIndex);
         const category = categoryId ? categoryId : '';
         getLbplist({pageIndex: pageIndex, pageSize: 10, name: value, category: category});
     };
@@ -75,7 +77,7 @@ export default function GoodLIst() {
                 }
             </div>
             <div className={styles.pagination}>
-                <Pagination hideOnSinglePage onChange={onPageChange} showQuickJumper defaultCurrent={1} total={total} />
+                <Pagination hideOnSinglePage onChange={onPageChange} showQuickJumper current={current} total={total} />
             </div>
         </div>
     )

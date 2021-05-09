@@ -80,7 +80,7 @@ export default {
     },
     async getWillApplyList(query) {
         const res = await request.get('/request/willApplyList', {params:query});
-        const data = res.data.list?.map((item, index) => ({...item, lbpName: item.Lbpinfo?.name,standard:item.Lbpinfo?.standard,img: 'http://localhost:3000/uploads/'+item.Lbpinfo?.img, order: (query.pageIndex -1) * query.pageSize + index+1, key: item.requestId, operate: ['申请','删除']}));
+        const data = res.data.list?.map((item, index) => ({...item, lbpName: item.Lbpinfo?.name,standard:item.Lbpinfo?.standard,img: 'http://localhost:3000/uploads/'+item.Lbpinfo?.img, createdAt: item.createdAt?.slice(0, 10), order: (query.pageIndex -1) * query.pageSize + index+1, key: item.requestId, operate: ['申请','删除']}));
         return {
             data,
             total: res.data.total
@@ -88,6 +88,17 @@ export default {
     },
     async updateRequest(body) {
         const res = await request.post('/request/update', body);
+        return res;
+    },
+    async getAppliedList(query) {
+        const res = await request.get('/request/appliedList', {params: query});
+        return {
+            data: res.data.list,
+            total: res.data.total
+        }
+    },
+    async reApply(body) {
+        const res = await request.post('/request/reApply', body);
         return res;
     }
 }

@@ -11,6 +11,7 @@ const layout = {
 };
 
 export default function WillApply(props) {
+    const {setShouldUpdate} = props;
     const [form] = Form.useForm()
     const [total, setTotal] = useState(0);
     const [data, setData] = useState([]);
@@ -52,6 +53,11 @@ export default function WillApply(props) {
             title: '申请数量',
             dataIndex: 'num',
             // width: '10%'
+        },
+        {
+            title: '创建时间',
+            dataIndex: 'createdAt',
+            key: 'createdAt'
         },
         {
             title: '操作',
@@ -112,6 +118,7 @@ export default function WillApply(props) {
             service.updateRequest({requestId: requestIds}).then(res => {
                 if(res.code === 200) {
                     message.info('申请成功，请到申请列表查看！');
+                    setShouldUpdate(true);
                     getWillApplyList(query.current);
                     setVisible(false);
                 } else {
@@ -125,6 +132,7 @@ export default function WillApply(props) {
             service.updateRequest(values).then(res => {
                 if(res.code === 200) {
                     message.info('申请成功，请到申请列表查看');
+                    setShouldUpdate(true);
                     getWillApplyList(query.current);
                     setVisible(false);
                 } else {
@@ -133,6 +141,7 @@ export default function WillApply(props) {
             })
         }
         setIsMore(false);
+        form.setFieldsValue({reason: ''});
     }
 
     const rowDelete = {
@@ -200,6 +209,7 @@ export default function WillApply(props) {
             bordered
             scroll={{ y: 390 }}
             dataSource={data}
+            // @ts-ignore
             columns={columns}
             pagination={{
                 total: total,
@@ -211,6 +221,7 @@ export default function WillApply(props) {
             <Modal title="重新申请" visible={visible}
             onOk={handleOk}
             onCancel={() => {
+                form.setFieldsValue({reason: ''});
                 setVisible(false);
                 setIsMore(false);
             }}

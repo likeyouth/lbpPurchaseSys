@@ -5,6 +5,7 @@ import { Modal, Form, Radio, message, Input, Select} from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import service from '@/service/service';
 const { Option } = Select;
+import {history} from 'ice';
 
 const layout = {
     labelCol: { span: 3 },
@@ -32,7 +33,12 @@ export default function(props) {
     const menu = (
         <Menu>
             <Menu.Item onClick={() => {setVisible(true)}}>编辑资料</Menu.Item>
-            <Menu.Item>退出登录</Menu.Item>
+            <Menu.Item onClick={() => {
+                sessionStorage.setItem('token', '');
+                sessionStorage.setItem('userId', '');
+                sessionStorage.setItem('roleId', '');
+                history.push('/login');
+            }}>退出登录</Menu.Item>
         </Menu>
     )
     const handleOk = () => {
