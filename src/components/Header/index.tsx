@@ -25,7 +25,9 @@ export default function(props) {
     }
 
     useEffect(() => {
-        getUserinfo();
+        if( Number(sessionStorage.getItem('userId'))) {
+            getUserinfo();
+        }
     },[])
     const menu = (
         <Menu>
