@@ -1,3 +1,4 @@
+import getPlacements from 'antd/lib/tooltip/placements';
 import { request } from 'ice';
 
 export default {
@@ -99,6 +100,39 @@ export default {
     },
     async reApply(body) {
         const res = await request.post('/request/reApply', body);
+        return res;
+    },
+    async getReply(query) {
+        const res = await request.get('/requestReply/appliedList', {params: query});
+        return {
+            data: res.data.list,
+            total: res.data.total
+        }
+    },
+    async addReply(body) {
+        const res = await request.post('/requestReply/add', body);
+        return res;
+    },
+    async getApprovalList(query) {
+        const res = await request.get('/requestReply/approvalList', {params: query});
+        return {
+            data: res.data.list,
+            total: res.data.total
+        }
+    },
+    async addPlane(body) {
+        const res = await request.post('/plane/add', body);
+        return res;
+    },
+    async getPlan(query?) {
+        const res = await request.get('/plane', {params: query});
+        return {
+            data: res.data.list,
+            total: res.data.total
+        }
+    },
+    async addOneReply(body) {
+        const res = await request.post('/plane/addOne', body);
         return res;
     }
 }

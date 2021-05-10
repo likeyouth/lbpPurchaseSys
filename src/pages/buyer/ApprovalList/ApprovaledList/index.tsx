@@ -1,23 +1,28 @@
-import React, { useState, useRef} from 'react';
+import React, { useState, useRef,useEffect} from 'react';
 import styles from './index.module.scss';
-import { Button, Form, Table, Modal, Input, Select } from 'antd';
+import { Button, Form, Table, Modal, Input, Select, message } from 'antd';
+import service from '@/service/service';
 const {Option} = Select;
 const layout = {
     labelCol: { span: 6 },
     wrapperCol: { span: 18 },
 };
 
-export default function ApprovaledList () {
-    const [form] = Form.useForm()
-    const [total, setTotal] = useState(100);
-    const [isFirst, setIsFirst] = useState<boolean>(false)
-    const [visible, setVisible] = useState<boolean>(false)
+export default function ApprovaledList (props) {
+    const {isChange, setIsChange} = props;
+    const [form] = Form.useForm();
+    const [total, setTotal] = useState(0);
+    const [data, setData] = useState([]);
+    const [plane, setPlane] = useState([]);
+    const [replyId, setReplyId] = useState(0);
+    const [isFirst, setIsFirst] = useState<boolean>(false);
+    const [visible, setVisible] = useState<boolean>(false);
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
     });
 
-    const [selectedData, setSelectedData] = useState({selectedRows: [], selectedRowKeys: []})
+    const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([]);
 
     const columns = [
         {
@@ -27,99 +32,174 @@ export default function ApprovaledList () {
         },
         {
             title: '劳保品名称',
-            dataIndex: 'name',
-            // width: '15%'
+            dataIndex: 'lbpName',
+            width: '8%',
+            ellipsis: true
         },
         {
             title: '图片',
             dataIndex: 'img',
-            // width: '20%',
+            width: '8%',
+            align: 'center',
             render: (url, record) => (
                 <img src={url} style={{ width: 50, height: 30}}></img>
             )
         },
         {
             title: '申请数量',
-            dataIndex: 'amount',
-            // width: '10%'
+            dataIndex: 'num',
+            width: '8%'
         },
         {
-            title: '审批回复',
-            dataIndex: 'reply',
-            // width: '20%'
+            title: '规格',
+            dataIndex: 'standard',
+            width: '13%',
+            ellipsis: true
+        },
+        {
+            title: '申请人',
+            dataIndex: 'applier',
+            width: '10%'
         },
         {
             title: '审批人',
-            dataIndex: 'approver',
-            // width: '10%'
+            dataIndex: 'replier',
+            width: '10%'
+        },
+        {
+            title: '审批回复',
+            dataIndex: 'replyContent',
+            width: '10%',
+            ellipsis: true
         },
         {
             title: '状态',
-            dataIndex: 'status',
+            dataIndex: 'replyStatus',
             render: (status) => (<span>{status ? '已通过':'未通过'}</span>),
-            // width: '10%'
+            width: '8%'
         },
         {
             title: '审批时间',
-            dataIndex: 'date'
+            dataIndex: 'createdAt',
+            width: '10%'
         },
         {
             title: '操作',
             dataIndex: 'operate',
-            // width: '10%',
+            width: '10%',
             render: (op, row) => (
-                <Button type="link" onClick={() => {handleClick(row)}}>添加采购</Button>
+                <Button type="link" disabled={row.planeId || row.replyStatus === 0} onClick={() => {handleClick(row)}}>添加采购</Button>
             )
         }
     ]
-    const data:any[] = [];
-    for(let i=0; i<100; i++) {
-        data.push({
-            key: i,
-            order: i+1,
-            name: `劳保品${i+1}`,
-            img: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.alicdn.com%2Fimgextra%2Fi1%2FTB1oy6wcH1YBuNjSszhXXcUsFXa_%21%210-item_pic.jpg_400x400.jpg&refer=http%3A%2F%2Fimg.alicdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1620712347&t=e207916d762d25c482170755a177b447',
-            amount: 100,
-            reply: '加购',
-            approver: `采购员${i}`,
-            date: '2020-07-09',
-            status: i % 2 ? 0 : 1
-        })
-    }
 
-    const plane = [{name: '采购计划1', id: 1},{name: '采购计划2', id: 2},{name: '采购计划3', id: 3}]
     const handleClick = (record) => {
+        setReplyId(record.replyId);
         setVisible(true)
     }
 
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
-        query.current.pageSize = pageSize
-        query.current.pageIndex = 1
+        query.current.pageSize = pageSize;
+        query.current.pageIndex = 1;
+        getApprovalList({pageIndex: 1, pageSize: pageSize});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
-        query.current.pageIndex = page
+        query.current.pageIndex = page;
+        getApprovalList({pageIndex: page, pageSize: query.current.pageSize});
     }
 
     const rowSelected = {
-        selectedRowKeys: selectedData.selectedRowKeys,
-        onChange: (selectedRowKeys, selectedRows) => {
-            setSelectedData({ selectedRowKeys: selectedRowKeys, selectedRows: selectedRows });
+        selectedRowKeys: selectedRowKeys,
+        onChange: selectedKeys => {
+            if(selectedRowKeys.length === 0) {
+                setSelectedRowKeys(selectedKeys);
+            } else {
+                const fiterItems = selectedKeys.filter(item => {
+                    return !selectedRowKeys.includes(item);
+                });
+                setSelectedRowKeys([...selectedRowKeys, ...fiterItems]);
+            }
         },
+        getCheckboxProps: (record) => ({
+            disabled: record.planeId || record.replyStatus === 0
+        })
     }
 
     const handleOk = () => {
-        setIsFirst(false)
-        setVisible(false)
+        const userId = Number(sessionStorage.getItem('userId'));
+        if(isFirst) {
+            // 生成采购计划
+            const values = form.getFieldsValue();
+            values.userId = userId;
+            values.replyIds = selectedRowKeys;
+            service.addPlane(values).then(res => {
+                if(res.code === 200) {
+                    message.info('添加成功，请到采购计划列表中查看');
+                    getApprovalList(query.current);
+                    form.setFieldsValue({name: ''});
+                    setSelectedRowKeys([]);
+                } else {
+                    message.info('添加失败，请稍后重试');
+                }
+            })
+        } else {
+            // 向采购计划添加记录
+            const values = form.getFieldsValue();
+            values.replyId = replyId;
+            service.addOneReply(values).then(res => {
+                if(res.code === 200) {
+                    message.info('添加成功，请到采购计划列表中查看');
+                    getApprovalList(query.current);
+                }else {
+                    message.info('添加失败，请稍后重试');
+                    form.setFieldsValue({planeId: ''});
+                }
+            })
+        }
+        setIsFirst(false);
+        setVisible(false);
     }
 
     const createPlane = () => {
-        console.log(selectedData.selectedRows)
-        setIsFirst(true)
-        setVisible(true)
+        if(selectedRowKeys.length === 0) {
+            message.info('请先勾选要加入采购计划的数据');
+            return;
+        } else {
+            setIsFirst(true);
+            setVisible(true);
+        }
     }
+
+    const getApprovalList = (query?) => {
+        query = query || {pageIndex: 1, pageSize: 10};
+        service.getApprovalList(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
+    const getPlan = (query?) => {
+        service.getPlan(query).then(res => {
+            setPlane(res.data);
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
+    useEffect(() =>{
+        getApprovalList();
+        getPlan();
+    },[])
+
+    useEffect(() => {
+        if(isChange) {
+            getApprovalList(query.current);
+            setIsChange(false);
+        }
+    }, [isChange])
     return(
         <div className={styles.approvaledList}>
             <Button style={{marginBottom: 10}} type="primary" onClick={() => {createPlane()}}>生成采购计划</Button>
@@ -129,6 +209,7 @@ export default function ApprovaledList () {
             bordered
             scroll={{ y: 400 }}
             dataSource={data}
+            // @ts-ignore
             columns={columns}
             pagination={{
                 total: total,
@@ -145,12 +226,12 @@ export default function ApprovaledList () {
             }}
             okText="确认" cancelText="取消">
                 <Form {...layout} form={form}>
-                    <Form.Item name="plane" label="采购计划" rules={[{required: true}]}>
+                    <Form.Item name={isFirst ? 'name' : 'planeId'} label="采购计划" rules={[{required: true}]}>
                         {
                             !isFirst ?
                             <Select placeholder="请选择采购计划">
-                                {plane.map(item => {
-                                    return <Option key={item.id} value={item.id}>{item.name}</Option>
+                                {plane.map((item: {planeId, name}) => {
+                                    return <Option key={item.planeId} value={item.planeId}>{item.name}</Option>
                                 })}
                             </Select> :
                             <Input placeholder="采购计划名称" />

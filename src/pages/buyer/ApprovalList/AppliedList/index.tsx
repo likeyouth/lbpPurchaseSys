@@ -1,17 +1,21 @@
-import React, { useState, useRef} from 'react';
+import React, { useState, useRef,useEffect} from 'react';
 import styles from './index.module.scss';
-import { Button, Form, Table, Modal, Input, Select, message } from 'antd';
-const {Option} = Select;
+import service from '@/service/service';
+import { Button, Form, Table, Modal, Input, message, Radio } from 'antd';
 const {TextArea} = Input;
 const layout = {
     labelCol: { span: 6 },
     wrapperCol: { span: 18 },
 };
 
-export default function ApprovaledList () {
+export default function AppliedList (props) {
+    const {setIsChange} = props;
     const [form] = Form.useForm()
-    const [total, setTotal] = useState(100);
-    const [visible, setVisible] = useState<boolean>(false)
+    const [total, setTotal] = useState(0);
+    const [data, setData] = useState([]);
+    const [isMore, setIsMore] = useState<boolean>(false);
+    const [visible, setVisible] = useState<boolean>(false);
+    const initialValue = {status: 0, replyContent: ''};
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
@@ -27,63 +31,64 @@ export default function ApprovaledList () {
         },
         {
             title: '劳保品名称',
-            dataIndex: 'name',
-            // width: '15%'
+            dataIndex: 'lbpName',
+            width: '12%'
         },
         {
             title: '图片',
             dataIndex: 'img',
-            // width: '20%',
+            width: '10%',
+            align: 'center',
             render: (url, record) => (
                 <img src={url} style={{ width: 50, height: 30}}></img>
             )
         },
         {
             title: '申请数量',
-            dataIndex: 'amount',
-            // width: '10%'
+            dataIndex: 'num',
+            width: '10%'
         },
         {
             title: '申请人',
             dataIndex: 'applier',
-            // width: '10%'
+            width: '10%'
+        },
+        {
+            title: '规格',
+            dataIndex: 'standard',
+            width: '18%',
+            ellipsis: true
+        },
+        {
+            title: '申请原因',
+            dataIndex: 'reason',
+            width: '15%',
+            ellipsis: true
         },
         {
             title: '申请时间',
-            dataIndex: 'date'
+            dataIndex: 'createdAt',
+            width: '10%',
         },
         {
             title: '操作',
             dataIndex: 'operate',
-            // width: '10%',
+            width: '10%',
             render: (op, row) => (
                 <Button type="link" onClick={() => {handleApproval(row)}}>审批</Button>
             )
         }
     ]
-    const data:any[] = [];
-    for(let i=0; i<100; i++) {
-        data.push({
-            key: i,
-            order: i+1,
-            name: `劳保品${i+1}`,
-            img: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.alicdn.com%2Fimgextra%2Fi1%2FTB1oy6wcH1YBuNjSszhXXcUsFXa_%21%210-item_pic.jpg_400x400.jpg&refer=http%3A%2F%2Fimg.alicdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1620712347&t=e207916d762d25c482170755a177b447',
-            amount: 100,
-            applier: `部门负责人${i}`,
-            date: '2020-07-09',
-            status: i % 2 ? 0 : 1
-        })
-    }
 
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
-        query.current.pageSize = pageSize
-        query.current.pageIndex = 1
+        query.current.pageSize = pageSize;
+        query.current.pageIndex = 1;
+        getReply({pageIndex: 1, pageSize: pageSize});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
-        query.current.pageIndex = page
+        query.current.pageIndex = page;
+        getReply({pageIndex: page, pageSize: query.current.pageSize});
     }
 
     const rowSelected = {
@@ -92,24 +97,70 @@ export default function ApprovaledList () {
             setSelectedData({ selectedRowKeys: selectedRowKeys, selectedRows: selectedRows });
         },
     }
+    const addReply = (values) => {
+        service.addReply(values).then(res => {
+            if(res.code === 200) {
+                message.info('审批成功！');
+                setIsChange(true);
+                getReply(query.current);
+            } else {
+                message.error('审批失败,请稍后重试！');
+            }
+        }).catch(err => {
+            console.log(err);
+        })
+    }
 
     const handleOk = () => {
-        setVisible(false)
+        const userId = Number(sessionStorage.getItem('userId'));
+        if(isMore) {
+            // 批量审批
+            const values = form.getFieldsValue();
+            const body = selectedData.selectedRows.map((item:{requestId}) => ({
+                userId: userId,
+                requestId: item.requestId,
+                status: values.status,
+                replyContent: values.replyContent
+            }));
+            addReply(body);
+        } else {
+            // 单条审批
+            const values = form.getFieldsValue();
+            values.userId = userId;
+            addReply(values);
+        }
+        form.setFieldsValue(initialValue);
+        setVisible(false);
     }
 
     const handleApprovalAll = () => {
         if(!selectedData.selectedRows.length){
-            message.error('请先选择数据')
+            message.error('请先选择数据');
         } else {
-            console.log(selectedData.selectedRows)
-            setVisible(true)
+            setIsMore(true);
+            setVisible(true);
         }
     }
 
     const handleApproval = (row) => {
-        setVisible(true)
-        console.log(row)
+        form.setFieldsValue({requestId: row.requestId});
+        setIsMore(false);
+        setVisible(true);
     }
+
+    const getReply = (query?) => {
+        query = query || {pageIndex: 1, pageSize: 10};
+        service.getReply(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
+    useEffect(() => {
+        getReply();
+    }, [])
     return(
         <div className={styles.appliedList}>
             <Button style={{marginBottom: 10}} type="primary" onClick={() => {handleApprovalAll()}}>批量审批</Button>
@@ -119,6 +170,7 @@ export default function ApprovaledList () {
             bordered
             scroll={{ y: 400 }}
             dataSource={data}
+            // @ts-ignore
             columns={columns}
             pagination={{
                 total: total,
@@ -127,18 +179,27 @@ export default function ApprovaledList () {
                 onShowSizeChange: showSizeChanger,
                 showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
             }}></Table>
-            <Modal title="生成采购计划" visible={visible}
+            <Modal title="采购审批" visible={visible}
             onOk={handleOk}
             onCancel={() => {
-                setVisible(false)
+                setVisible(false);
+                form.setFieldsValue(initialValue);
             }}
             okText="确认" cancelText="取消">
-                <Form {...layout} form={form}>
-                    <Form.Item name="reply" label="审批回复" rules={[{required: true}]}>
-                    <TextArea
-                    placeholder="审批回复内容"
-                    autoSize={{ minRows: 2, maxRows: 6 }}
-                    onChange={(value) => console.log(value)} />
+                <Form initialValues={initialValue} {...layout} form={form}>
+                    <Form.Item style={{display:'none'}} name="requestId">
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="是否通过" name="status" rules={[{required: true}]}>
+                        <Radio.Group>
+                            <Radio value={0}>不通过</Radio>
+                            <Radio value={1}>通过</Radio>
+                        </Radio.Group>
+                    </Form.Item>
+                    <Form.Item name="replyContent" label="审批回复" >
+                        <TextArea
+                        placeholder="审批回复内容"
+                        autoSize={{ minRows: 2, maxRows: 6 }}/>
                     </Form.Item>
                 </Form>
             </Modal>
