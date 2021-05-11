@@ -1,7 +1,7 @@
 import React, {useState, useRef} from 'react';
 import styles from './index.module.scss';
 import {Table, Button, Modal, Input, Form, Radio, Row, message} from 'antd';
-import {history} from 'ice';
+import {useHistory} from 'ice';
 
 const {confirm} = Modal;
 const { TextArea } = Input;
@@ -11,6 +11,7 @@ const layout = {
 };
 
 export default function OrderForm () {
+    const history = useHistory();
     const [total, setTotal] = useState<number>(100)
     const [visible, setVisible] = useState<boolean>(false)
     const query = useRef({

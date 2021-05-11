@@ -1,4 +1,3 @@
-import getPlacements from 'antd/lib/tooltip/placements';
 import { request } from 'ice';
 
 export default {
@@ -126,13 +125,29 @@ export default {
     },
     async getPlan(query?) {
         const res = await request.get('/plane', {params: query});
-        return {
-            data: res.data.list,
-            total: res.data.total
+        if(query) {
+            const data = res.data.list?.map((item, index) => ({...item, order: (query.pageIndex -1) * query.pageSize + index+1, key: item.planeId, user: item.User.username, operate: ['生成订单', '删除']}));
+            return {
+                data: data,
+                total: res.data.total
+            }
+        } else {
+            return {
+                data: res.data.list,
+                total: res.data.total
+            }
         }
     },
     async addOneReply(body) {
         const res = await request.post('/plane/addOne', body);
+        return res;
+    },
+    async deletePlane(body) {
+        const res = await request.post('/plane/delete', body);
+        return res;
+    },
+    async addOrder(body) {
+        const res = await request.post('/order/add', body);
         return res;
     }
 }

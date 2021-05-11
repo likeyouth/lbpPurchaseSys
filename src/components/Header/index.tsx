@@ -5,7 +5,7 @@ import { Modal, Form, Radio, message, Input, Select} from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import service from '@/service/service';
 const { Option } = Select;
-import {history} from 'ice';
+import {useHistory} from 'ice';
 
 const layout = {
     labelCol: { span: 3 },
@@ -13,6 +13,7 @@ const layout = {
 };
 
 export default function(props) {
+    const history = useHistory();
     const [form] = Form.useForm();
     const [visible, setVisible] = useState<boolean>(false);
     const [userInfo, setUserInfo] = useState<{username, roleId, userId}>({username: '',roleId: 0, userId: 0});

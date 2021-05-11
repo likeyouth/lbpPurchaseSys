@@ -1,12 +1,13 @@
 import React, {useState, useRef} from 'react';
 import styles from './index.module.scss';
 import {Table, Button, Modal, Input} from 'antd';
-import {history} from 'ice';
+import {useHistory} from 'ice';
 
 const {confirm} = Modal;
 const { Search } = Input;
 
 export default function OrderForm () {
+    const history = useHistory();
     const [total, setTotal] = useState<number>(100)
     const query = useRef({
         pageIndex: 1,

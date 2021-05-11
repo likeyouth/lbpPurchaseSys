@@ -10,11 +10,12 @@ export default function () {
     const onFinish = (values: any) => {
         const res = service.login(values);
         res.then(({roleId, userId, token}) => {
-            message.info('登陆成功');
-            sessionStorage.setItem('roleId', roleId)
-            sessionStorage.setItem('userId', userId)
-            sessionStorage.setItem('token', token)
-            selectRole(roleId)
+            sessionStorage.setItem('roleId', roleId);
+            sessionStorage.setItem('userId', userId);
+            sessionStorage.setItem('token', token);
+            message.info('登陆成功', 1).then(() => {
+                selectRole(roleId)
+            })
         })
     }
 
