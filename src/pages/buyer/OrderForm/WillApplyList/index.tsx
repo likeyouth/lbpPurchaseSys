@@ -1,32 +1,28 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import styles from './index.module.scss';
-import {Table, Button, Modal, Input, Form, Radio, Row, message} from 'antd';
+import {Table, Button, Modal, Input, Form, message} from 'antd';
 import {useHistory} from 'ice';
+import service from '@/service/service';
 
 const {confirm} = Modal;
-const { TextArea } = Input;
+const { TextArea, Search } = Input;
 const layout = {
     labelCol: { span: 4 },
     wrapperCol: { span: 19 },
 };
 
-export default function OrderForm () {
+export default function WillApplyList () {
+    const [form] = Form.useForm();
+    const [data, setData] = useState([]);
+    const [total, setTotal] = useState(0);
     const history = useHistory();
-    const [total, setTotal] = useState<number>(100)
     const [visible, setVisible] = useState<boolean>(false)
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
+        orderName: ''
     });
 
-    const [selectedData, setSelectedData] = useState({ selectedRowKeys: [], selectedRows: [] });
-
-    const rowData = {
-        selectedRowKeys: selectedData.selectedRowKeys,
-        onChange: (selectedRowKeys, selectedRows) => {
-            setSelectedData({ selectedRowKeys: selectedRowKeys, selectedRows: selectedRows });
-        },
-    };
     const columns = [
         {
             title: '序号',
@@ -36,19 +32,23 @@ export default function OrderForm () {
         {
             title: '订单名称',
             dataIndex: 'name',
-            render: (name) => (<Button type="link" onClick={() => {history.push('/admin/orderTail')}}>{name}</Button>)
+            render: (name, row) => (<Button type="link" onClick={() => {history.push(`/buyer/planeDetail?planeId=${row.planeId}&isForm=order`)}}>{name}</Button>)
         },
         {
             title: '订单价格',
-            dataIndex: 'price'
+            dataIndex: 'amount'
         },
         {
             title: '供应商',
             dataIndex: 'supplier'
         },
         {
+            title: '创建人',
+            dataIndex: 'applier'
+        },
+        {
             title: '创建日期',
-            dataIndex: 'date'
+            dataIndex: 'createdAt'
         },
         {
             title: '操作',
@@ -56,69 +56,84 @@ export default function OrderForm () {
             render: (op, row) => (
                 <div>
                     {op.map((item, index) => {
-                        return <Button key={index} danger={index === 1} style={{marginLeft: 10}} type="link" size="small" onClick={() => {handleClick(index,row)}}>{item}</Button>
+                        return <Button key={index} disabled={row.applierId !== Number(sessionStorage.getItem('userId'))} danger={index === 1} style={{marginLeft: 10}} type="link" size="small" onClick={() => {handleClick(index,row)}}>{item}</Button>
                     })}
                 </div>
             )
         }
     ]
 
-    const data:any[] = [];
-    for(let i=0; i<100; i++) {
-        data.push({
-            key: i,
-            order: i+1,
-            name: `订单${i+1}`,
-            applier: `供应商${i+1}`,
-            reason: '库存不够',
-            price: 103948+i,
-            date: '2020-03-05',
-            supplier: '供应商xxx',
-            operate: ['申请', '删除']
-        })
-    }
-
     const handleClick = (index, row) => {
         if(index) {
             confirm({
                 content: '确认删除吗?',
-                onOk: () => {console.log('删除了')}
+                onOk: () => {
+                    service.deleteOrder({orderId: row.orderId}).then(res => {
+                        if(res.code === 200) {
+                            message.info('删除成功');
+                            getOrders({...query.current, status: 0});
+                        }
+                    })
+                }
             })
         } else {
-            setVisible(true)
+            form.setFieldsValue({orderId: row.orderId});
+            setVisible(true);
         }
     }
 
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
-        query.current.pageSize = pageSize
-        query.current.pageIndex = 1
+        query.current.pageSize = pageSize;
+        query.current.pageIndex = 1;
+        getOrders({pageIndex: 1, pageSize: pageSize, orderName: query.current.orderName, status: 0});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
-        query.current.pageIndex = page
+        query.current.pageIndex = page;
+        getOrders({pageIndex: page, pageSize: query.current.pageSize, orderName: query.current.orderName, status: 0});
     }
 
-    const handleApproval = () => {
-        if(!selectedData.selectedRows.length) {
-            message.warn('请先勾选数据')
-        } else {
-            console.log(selectedData)
-            setVisible(true)
-        }
+    const handleSearch = (value) => {
+        query.current.orderName = value;
+        query.current.pageIndex = 1;
+        getOrders({pageIndex: 1, pageSize: query.current.pageSize, orderName: value, status: 0});
     }
+
+    // 订单申请
     const handleOk = () => {
-        setVisible(false)
+        const values = form.getFieldsValue();
+        values.status = 1;
+        service.updateOrder(values).then(res => {
+            if(res.code === 200) {
+                message.info('申请成功，请到已申请列表查看');
+                getOrders({...query.current, status: 0});
+                setVisible(false);
+            }
+        }).catch(err => {
+            setVisible(false);
+        })
+        form.setFieldsValue({orderId: 0, reason: ''});
     }
+
+    const getOrders = (query?) => {
+        query = query || {pageIndex: 1, pageSize: 10, status: 0};
+        service.getOrders(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
+    useEffect(() => {
+        getOrders();
+    }, []);
+
 
     return(
-        <div className={styles.orderForm}>
-            <Button style={{marginBottom: 10}} type="primary" onClick={() => {handleApproval()}}>一键申请</Button>
+        <div style={{paddingBottom: data.length === 0 ? 20 : 0}} className={styles.orderForm}>
+            <Search style={{width: 250, marginBottom: 10}} enterButton placeholder="请输入订单名称" onSearch={handleSearch}/>
             <Table
-            rowSelection={{
-                ...rowData
-            }}
             size="small"
             bordered
             scroll={{ y: 400 }}
@@ -134,10 +149,12 @@ export default function OrderForm () {
             <Modal title="审批" visible={visible}
             onCancel={() => setVisible(false)}
             onOk={() => {handleOk()}}>
-                <Form {...layout}>
-                    <Form.Item name="reason" label="申请理由" rules={[{required: true}]}>
-                        <TextArea placeholder="申请理由" autoSize={{minRows: 2, maxRows: 6}}
-                        onChange={(value) => {console.log(value)}} />
+                <Form form={form} {...layout}>
+                    <Form.Item name="orderId" style={{display: 'none'}}>
+                        <TextArea placeholder="申请理由" autoSize={{minRows: 2, maxRows: 6}}/>
+                    </Form.Item>
+                    <Form.Item name="reason" label="申请理由">
+                        <TextArea placeholder="申请理由" autoSize={{minRows: 2, maxRows: 6}}/>
                     </Form.Item>
                 </Form>
             </Modal>

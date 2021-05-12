@@ -1,17 +1,20 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import styles from './index.module.scss';
-import {Table, Button, Modal, Input} from 'antd';
+import {Table, Button, Modal, Input, message} from 'antd';
 import {useHistory} from 'ice';
+import service from '@/service/service';
 
 const {confirm} = Modal;
 const { Search } = Input;
 
-export default function OrderForm () {
+export default function AppliedList () {
+    const [data, setData] = useState([]);
+    const [total, setTotal] = useState(0);
     const history = useHistory();
-    const [total, setTotal] = useState<number>(100)
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
+        orderName: ''
     });
     const columns = [
         {
@@ -22,7 +25,7 @@ export default function OrderForm () {
         {
             title: '订单名称',
             dataIndex: 'name',
-            render: (name) => (<Button type="link" onClick={() => {history.push('/admin/orderTail')}}>{name}</Button>)
+            render: (name, row) => (<Button type="link" onClick={() => {history.push(`/buyer/planeDetail?planeId=${row.planeId}&isForm=order`)}}>{name}</Button>)
         },
         {
             title: '申请者',
@@ -34,7 +37,7 @@ export default function OrderForm () {
         },
         {
             title: '订单价格',
-            dataIndex: 'price'
+            dataIndex: 'amount'
         },
         {
             title: '供应商',
@@ -42,49 +45,63 @@ export default function OrderForm () {
         },
         {
             title: '创建日期',
-            dataIndex: 'date'
+            dataIndex: 'createdAt'
         },
         {
             title: '操作',
             dataIndex: 'operate',
             render: (op, row) => (
-                <Button type="link" size="small" onClick={() => {
+                <Button  disabled={row.applierId !== Number(sessionStorage.getItem('userId'))} type="link" size="small" onClick={() => {
                     confirm({
                         content: '确认删除吗？',
-                        onOk: () => {console.log('删除')}
+                        onOk: () => {
+                            service.deleteOrder({orderId: row.orderId}).then(res => {
+                                if(res.code === 200) {
+                                    message.info('删除成功');
+                                    getOrders(query.current);
+                                }
+                            })
+                        }
                     })
                 }}>删除</Button>
             )
         }
     ]
 
-    const data:any[] = [];
-    for(let i=0; i<100; i++) {
-        data.push({
-            key: i,
-            order: i+1,
-            name: `订单${i+1}`,
-            applier: `采购员${i+1}`,
-            reason: '库存不够了',
-            price: 100089+i,
-            supplier: `供应商${i+1}`,
-            date: '2020-04-13',
-        })
-    }
-
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
-        query.current.pageSize = pageSize
-        query.current.pageIndex = 1
+        query.current.pageSize = pageSize;
+        query.current.pageIndex = 1;
+        getOrders({...query.current, pageIndex: 1, pageSize: pageSize});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
-        query.current.pageIndex = page
+        query.current.pageIndex = page;
+        getOrders({...query.current, pageIndex: page});
     }
 
+    const handleSearch = (value) => {
+        query.current.orderName = value;
+        query.current.pageIndex = 1;
+        getOrders({...query.current, pageIndex: 1, orderName: value});
+    }
+
+    const getOrders = (query?) => {
+        query = query || {pageIndex: 1, pageSize: 10};
+        query.status = 1;
+        service.getOrders(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
+    useEffect(() => {
+        getOrders();
+    }, []);
     return(
         <div className={styles.orderForm}>
+            <Search style={{width: 250, marginBottom: 10}} enterButton placeholder="请输入订单名称" onSearch={handleSearch} />
             <Table
             size="small"
             bordered

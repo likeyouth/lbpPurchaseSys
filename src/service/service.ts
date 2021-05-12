@@ -1,5 +1,15 @@
 import { request } from 'ice';
 
+const getOperate = (status) => {
+    switch(status) {
+        case 0: return ['申请', '删除']; // 待申请
+        case 1: return ['删除']; // 已申请
+        case 4: return ['删除']; // 已付款
+        case 5: return ['删除']; // 已到货
+        default: return ['重新申请', '取消订单', '删除'] // 已审批
+    }
+}
+
 export default {
     async login(body) {
         const res:any= await request.post('/login', body);
@@ -112,6 +122,10 @@ export default {
         const res = await request.post('/requestReply/add', body);
         return res;
     },
+    async updateReply(body) {
+        const res = await request.post('/requestReply/update', body);
+        return res;
+    },
     async getApprovalList(query) {
         const res = await request.get('/requestReply/approvalList', {params: query});
         return {
@@ -148,6 +162,24 @@ export default {
     },
     async addOrder(body) {
         const res = await request.post('/order/add', body);
+        return res;
+    },
+    async getOrders(query) {
+        const status = parseInt(query.status);
+        const operate = getOperate(status);
+        const res = await request.get('/order', {params: query});
+        const data = res.data.list?.map((item, index) => ({...item, replyContent: item.replyContent || '无', applier: item.Applier.username, reason: item.reason || '无', supplier: item.Supplier.supplierName, approvaler: item.Approvaler ? item.Approvaler.username : '无', order: (query.pageIndex -1) * query.pageSize + index+1, key: item.orderId, operate: operate, createdAt: item.createdAt?.slice(0,10)}));
+        return {
+            data: data,
+            total: res.data.total
+        }
+    },
+    async deleteOrder(body) {
+        const res = await request.post('/order/delete', body);
+        return res;
+    },
+    async updateOrder(body) {
+        const res = await request.post('/order/update', body);
         return res;
     }
 }

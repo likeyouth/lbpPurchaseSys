@@ -1,17 +1,19 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import styles from './index.module.scss';
-import {Table, Button, Modal, Input} from 'antd';
+import {Table, Button, Input} from 'antd';
 import {useHistory} from 'ice';
-
-const {confirm} = Modal;
+import service from '@/service/service';
 const { Search } = Input;
 
-export default function OrderForm () {
+export default function ApprovaledList (props: {setApproval,isApprovaled}) {
+    const {setApproval,isApprovaled} = props;
+    const [total, setTotal] = useState(0);
+    const [data, setData] = useState([]);
     const history = useHistory();
-    const [total, setTotal] = useState<number>(100)
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
+        orderName: ''
     });
     const columns = [
         {
@@ -22,7 +24,9 @@ export default function OrderForm () {
         {
             title: '订单名称',
             dataIndex: 'name',
-            render: (name) => (<Button type="link" onClick={() => {history.push('/admin/orderTail')}}>{name}</Button>)
+            render: (name, row) => (<Button type="link" onClick={() => {history.push(`/admin/orderTail?planeId=${row.planeId}`)}}>{name}</Button>),
+            width: '15%',
+            ellipsis: true,
         },
         {
             title: '申请者',
@@ -34,7 +38,7 @@ export default function OrderForm () {
         },
         {
             title: '订单价格',
-            dataIndex: 'price'
+            dataIndex: 'amount'
         },
         {
             title: '供应商',
@@ -42,67 +46,63 @@ export default function OrderForm () {
         },
         {
             title: '审批回复',
-            dataIndex: 'reply'
+            dataIndex: 'replyContent'
         },
         {
             title: '创建日期',
-            dataIndex: 'date'
+            dataIndex: 'createdAt'
         },
         {
             title: '是否通过',
-            dataIndex: 'state',
+            dataIndex: 'status',
             render: (state) => (
-                state === 0 ? '未通过' : '已通过'
-            )
-        },
-        {
-            title: '操作',
-            dataIndex: 'operate',
-            render: (op, row) => (
-                <Button type="link" size="small" onClick={() => {
-                    confirm({
-                        content: '确认删除吗？',
-                        onOk: () => {console.log('删除')}
-                    })
-                }}>删除</Button>
+                <span style={{color: state === 2? 'rgb(221, 79, 66)' : state == 6 ? 'rgba(0,0,0, .5)' : 'rgb(14, 177, 175)'}}>{state === 2 ? '未通过' : state === 6 ? '已取消' : '已通过'}</span>
             )
         }
     ]
 
-    const data:any[] = [];
-    for(let i=0; i<100; i++) {
-        data.push({
-            key: i,
-            order: i+1,
-            name: `订单${i+1}`,
-            applier: `采购员${i+1}`,
-            reason: '库存不够了',
-            price: 100089+i,
-            supplier: `供应商${i+1}`,
-            reply: '通过',
-            date: '2020-04-13',
-            state: i%2 == 0 ? 1 : 0
-        })
-    }
-
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
-        query.current.pageSize = pageSize
-        query.current.pageIndex = 1
+        query.current.pageSize = pageSize;
+        query.current.pageIndex = 1;
+        getOrders({...query.current, pageSize: pageSize, pageIndex: 1});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
-        query.current.pageIndex = page
+        query.current.pageIndex = page;
+        getOrders({...query.current, pageIndex: page});
     }
 
-    const onSearch = val => console.log(val)
+    const getOrders = (query?) => {
+        query = query || {pageIndex: 1, pageSize: 10};
+        query.status = 2;
+        service.getOrders(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
+    const handleSearch = (value) => {
+        query.current.orderName = value;
+        query.current.pageIndex = 1;
+        getOrders({...query.current, pageIndex: 1, orderName: value});
+    }
+
+    useEffect(() =>{
+        getOrders();
+    }, [])
+
+    useEffect(() => {
+        if(isApprovaled) {
+            getOrders(query.current);
+            setApproval(false);
+        }
+    }, [isApprovaled])
 
     return(
         <div className={styles.orderForm}>
-            <div className={styles.search}>
-                <Search style={{width: 250, marginRight: 15}} placeholder="请输入订单名称" onSearch={onSearch} enterButton />
-            </div>
+            <Search enterButton style={{width: 250, marginBottom:10}} placeholder="请输入订单名称" onSearch={handleSearch} />
             <Table
             size="small"
             bordered

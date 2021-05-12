@@ -2,8 +2,9 @@ import React, {useState, useRef,useEffect} from 'react';
 import styles from './index.module.scss';
 import {Table, Button, Modal, Input, Form, message} from 'antd';
 import service from '@/service/service';
-import {useSearchParams, useHistory} from 'ice';
+import {useSearchParams} from 'ice';
 
+const {confirm} = Modal;
 const layout = {
     labelCol: { span: 4 },
     wrapperCol: { span: 20 },
@@ -14,8 +15,7 @@ export default function OrderDetail () {
     const [total, setTotal] = useState<number>(100)
     const [visible, setVisible] = useState<boolean>(false);
     const [data, setData] = useState([]);
-    const planeId = useSearchParams().planeId;
-    const history = useHistory();
+    const {planeId, isOrder, isForm} = useSearchParams();
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
@@ -68,8 +68,30 @@ export default function OrderDetail () {
         {
             title: '创建日期',
             dataIndex: 'createdAt'
+        },
+        {
+            title: '操作',
+            dataIndex: 'operate',
+            width: '8%',
+            render: (op, row) => (
+                <Button type="link" onClick={() => {handleRemove(row)}}>移除</Button>
+            )
         }
     ]
+
+    const handleRemove = (row) => {
+        confirm({
+            content: '确认将该条记录移出采购计划吗',
+            onOk: () => {
+                service.updateReply({replyId: row.replyId}).then(res => {
+                    if(res.code === 200) {
+                        message.info('移除成功');
+                        getApprovalList(query.current);
+                    }
+                })
+            }
+        })
+    }
 
     const showSizeChanger = (current, pageSize) => {
         query.current.pageSize = pageSize;
@@ -83,9 +105,11 @@ export default function OrderDetail () {
     }
 
     const handleOk = () => {
+        const applierId = Number(sessionStorage.getItem('userId'));
         form.validateFields().then(values => {
             values.planeId = planeId;
             values.supplierId = 2;
+            values.applierId = applierId;
             service.addOrder(values).then(res => {
                 if(res.code === 200) {
                     setVisible(false);
@@ -110,8 +134,8 @@ export default function OrderDetail () {
 
     return(
         <div className={styles.detail}>
-            <h4 className={styles.title}>采购计划详情</h4>
-            <Button style={{marginBottom: 15}} type="primary" onClick={() => {setVisible(true)}}>生成订单</Button>
+            <h4 className={styles.title}>{isForm === 'order' ? '订单详情' : '采购计划详情'}</h4>
+            <Button style={{marginBottom: 15, display: isForm==='order' ? 'none' : 'block'}} disabled={ Number(isOrder) === 1 } type="primary" onClick={() => {setVisible(true)}}>生成订单</Button>
             <Table size="small" bordered scroll={{y: 450}}
             // @ts-ignore
             dataSource={data} columns={columns}

@@ -26,7 +26,7 @@ export default function OrderForm () {
         {
             title: '采购计划名称',
             dataIndex: 'name',
-            render: (name, row) => (<Button type="link" onClick={() => {history.push(`/buyer/planeDetail?planeId=${row.planeId}`)}}>{name}</Button>)
+            render: (name, row) => (<Button type="link" onClick={() => {history.push(`/buyer/planeDetail?planeId=${row.planeId}&isOrder=${row.isOrder}`)}}>{name}</Button>)
         },
         {
             title: '创建人',
@@ -98,7 +98,7 @@ export default function OrderForm () {
             setData(res.data);
             setTotal(res.total);
         }).catch(err => {
-            message.info('服务器出错了，请稍后重试喔~')
+            console.log(err);
         })
     };
 

@@ -1,9 +1,15 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef,useEffect} from 'react';
 import styles from './index.module.scss';
-import {Table, Button, Col} from 'antd';
+import {Table, Button, Modal, message} from 'antd';
+import service from '@/service/service';
+import {useSearchParams} from 'ice';
+
+const {confirm} = Modal;
 
 export default function OrderDetail () {
     const [total, setTotal] = useState<number>(100)
+    const [data, setData] = useState([]);
+    const {planeId} = useSearchParams();
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
@@ -17,72 +23,106 @@ export default function OrderDetail () {
         },
         {
             title: '名称',
-            dataIndex: 'name',
+            dataIndex: 'lbpName',
             // width: '15%'
         },
         {
             title: '图片',
             dataIndex: 'img',
+            align: 'center',
             // width: '20%',
             render: (url, record) => (
                 <img src={url} style={{ width: 50, height: 30}}></img>
             )
         },
         {
-            title: '申请数量',
-            dataIndex: 'amount',
-            // width: '10%'
+            title: '规格',
+            dataIndex: 'standard',
+            ellipsis: true
         },
         {
-            title: '申请原因',
-            dataIndex: 'reason',
-            // width: '20%'
+            title: '价格',
+            dataIndex: 'price'
+        },
+        {
+            title: '申请数量',
+            dataIndex: 'num',
+            // width: '10%'
         },
         {
             title: '审批人',
-            dataIndex: 'approver',
+            dataIndex: 'replier',
             // width: '10%'
         },
         {
+            title: '申请回复',
+            dataIndex: 'replyContent',
+            // width: '20%'
+        },
+        {
             title: '创建日期',
-            dataIndex: 'date'
+            dataIndex: 'createdAt'
+        },
+        {
+            title: '操作',
+            dataIndex: 'operate',
+            width: '8%',
+            render: (op, row) => (
+                <Button type="link" onClick={() => {handleRemove(row)}}>移除</Button>
+            )
         }
     ]
-    const data:any = [];
-    for(let i=0; i<100; i++) {
-        data.push({
-            key: i,
-            order: i+1,
-            name: `劳保品${i+1}`,
-            img: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.alicdn.com%2Fimgextra%2Fi1%2FTB1oy6wcH1YBuNjSszhXXcUsFXa_%21%210-item_pic.jpg_400x400.jpg&refer=http%3A%2F%2Fimg.alicdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1620712347&t=e207916d762d25c482170755a177b447',
-            amount: 100,
-            reason: '库存不足需购',
-            approver: 'XXX',
-            date: '2020-4-30'
+
+    const handleRemove = (row) => {
+        confirm({
+            content: '确认将该条记录移出采购计划吗',
+            onOk: () => {
+                service.updateReply({replyId: row.replyId}).then(res => {
+                    if(res.code === 200) {
+                        message.info('移除成功');
+                        getApprovalList(query.current);
+                    }
+                })
+            }
         })
     }
 
     const showSizeChanger = (current, pageSize) => {
-        console.log(current, pageSize)
-        query.current.pageSize = pageSize
-        query.current.pageIndex = 1
+        query.current.pageSize = pageSize;
+        query.current.pageIndex = 1;
+        getApprovalList({pageIndex: 1, pageSize: pageSize});
     }
 
     const onPageChange = (page) => {
-        console.log(page)
-        query.current.pageIndex = page
+        query.current.pageIndex = page;
+        getApprovalList({pageIndex: page, pageSize:query.current.pageSize});
     }
+
+    const getApprovalList = (query?) => {
+        query = query || {pageSize: 10, pageIndex:1};
+        query.planeId = planeId;
+        service.getApprovalList(query).then(res => {
+            setData(res.data);
+            setTotal(res.total);
+        })
+    }
+
+    useEffect(() => {
+        getApprovalList();
+    }, [])
 
     return(
         <div className={styles.detail}>
             <h4 className={styles.title}>订单详情</h4>
-            <Table size="small" bordered scroll={{y: 500}}
+            <Table size="small" bordered scroll={{y: 450}}
+            // @ts-ignore
             dataSource={data} columns={columns}
             pagination={{
                 total: total,
                 showQuickJumper: true,
                 onChange: onPageChange,
                 onShowSizeChange: showSizeChanger,
+                showSizeChanger: true,
                 showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
             }}></Table>
         </div>
