@@ -9,6 +9,7 @@ import ApplyList from '@/pages/department/ApplyList';
 // 库存管理员
 import OrderForm from '@/pages/storage/OrderForm';
 import GoodsManage from '@/pages/storage/GoodsManage';
+import OrderDetail1 from '@/pages/storage/OrderDetail';
 
 // 系统管理员
 import Order from '@/pages/admin/OrderForm';
@@ -61,6 +62,11 @@ const routerConfig = [
       {
         path: '/storage/goodsManage',
         component: GoodsManage,
+        exact: true
+      },
+      {
+        path: '/storage/orderDetail',
+        component: OrderDetail1,
         exact: true
       },
       // 系统管理员路由

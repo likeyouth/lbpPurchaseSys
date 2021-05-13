@@ -11,7 +11,8 @@ const layout = {
     wrapperCol: { span: 19 },
 };
 
-export default function WillApplyList () {
+export default function WillApplyList (props: {setIsReget}) {
+    const {setIsReget} = props;
     const [form] = Form.useForm();
     const [data, setData] = useState([]);
     const [total, setTotal] = useState(0);
@@ -106,6 +107,7 @@ export default function WillApplyList () {
         service.updateOrder(values).then(res => {
             if(res.code === 200) {
                 message.info('申请成功，请到已申请列表查看');
+                setIsReget(true);
                 getOrders({...query.current, status: 0});
                 setVisible(false);
             }

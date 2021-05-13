@@ -7,7 +7,8 @@ import service from '@/service/service';
 const {confirm} = Modal;
 const { Search } = Input;
 
-export default function AppliedList () {
+export default function AppliedList (props: {setIsReget, isReget}) {
+    const {setIsReget, isReget} = props;
     const [data, setData] = useState([]);
     const [total, setTotal] = useState(0);
     const history = useHistory();
@@ -25,6 +26,7 @@ export default function AppliedList () {
         {
             title: '订单名称',
             dataIndex: 'name',
+            width: '20%',
             render: (name, row) => (<Button type="link" onClick={() => {history.push(`/buyer/planeDetail?planeId=${row.planeId}&isForm=order`)}}>{name}</Button>)
         },
         {
@@ -99,6 +101,10 @@ export default function AppliedList () {
     useEffect(() => {
         getOrders();
     }, []);
+    useEffect(() => {
+        setIsReget(false);
+        getOrders(query.current);
+    }, [isReget])
     return(
         <div className={styles.orderForm}>
             <Search style={{width: 250, marginBottom: 10}} enterButton placeholder="请输入订单名称" onSearch={handleSearch} />

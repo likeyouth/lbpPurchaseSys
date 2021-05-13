@@ -11,12 +11,14 @@ const layout = {
     wrapperCol: { span: 19 },
 };
 
-export default function ApprovaledList () {
+export default function ApprovaledList (props: {setIsReget}) {
+    const {setIsReget} = props;
     const[form] = Form.useForm();
     const [total, setTotal] = useState(0);
     const [data, setData] = useState([]);
     const [visible, setVisible] = useState(false);
     const history = useHistory();
+    const initialValue = {orderId: 0, reason: ''}
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
@@ -69,10 +71,10 @@ export default function ApprovaledList () {
         {
             title: '操作',
             dataIndex: 'operate',
-            width: '20%',
+            width: '15%',
             render: (op, row) => (
                 op.map((item, index) => {
-                    return <Button key={index} disabled={row.status == 3 && index ===2 || row.status === 6 && index ===1 || row.status === 2 && index ===1 ||  row.applierId !== Number(sessionStorage.getItem('userId'))} type="link" size="small" onClick={() => {
+                    return <Button style={{padding: 0, paddingRight:5}} key={index} disabled={row.status == 3 && index ===2 || row.status === 6 && index ===1 || row.status === 2 && index ===1 ||  row.applierId !== Number(sessionStorage.getItem('userId'))} type="link" size="small" onClick={() => {
                         if(index == 0) {
                             // 重新申请
                             form.setFieldsValue({orderId: row.orderId});
@@ -85,7 +87,7 @@ export default function ApprovaledList () {
                                     getOrders(query.current);
                                 }
                             })
-                        }else {
+                        }else{
                             // 删除订单
                             confirm({
                                 content: '确认删除吗？',
@@ -133,20 +135,20 @@ export default function ApprovaledList () {
         getOrders({...query.current, pageIndex: 1, orderName: value});
     }
 
-    // 重新申请订单
     const handleOk = () => {
         const values = form.getFieldsValue();
         values.status = 1;
         service.updateOrder(values).then(res => {
             if(res.code === 200) {
                 message.info('重新申请成功，请到已申请列表查看');
+                setIsReget(true);
                 getOrders(query.current);
                 setVisible(false);
             }
         }).catch(err => {
             setVisible(false);
         })
-        form.setFieldsValue({orderId: 0, reason: ''});
+        form.setFieldsValue(initialValue);
     }
 
     useEffect(() =>{
@@ -172,9 +174,9 @@ export default function ApprovaledList () {
             <Modal title="审批" visible={visible}
             onCancel={() => setVisible(false)}
             onOk={handleOk}>
-                <Form form={form} {...layout}>
+                <Form initialValues={initialValue} form={form} {...layout}>
                     <Form.Item name="orderId" style={{display: 'none'}}>
-                        <TextArea placeholder="申请理由" autoSize={{minRows: 2, maxRows: 6}}/>
+                        <Input />
                     </Form.Item>
                     <Form.Item name="reason" label="申请理由">
                         <TextArea placeholder="申请理由" autoSize={{minRows: 2, maxRows: 6}}/>

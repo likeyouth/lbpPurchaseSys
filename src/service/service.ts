@@ -126,6 +126,10 @@ export default {
         const res = await request.post('/requestReply/update', body);
         return res;
     },
+    async changeArrival(body) {
+        const res = await request.post('/requestReply/arrival', body);
+        return res;
+    },
     async getApprovalList(query) {
         const res = await request.get('/requestReply/approvalList', {params: query});
         return {
