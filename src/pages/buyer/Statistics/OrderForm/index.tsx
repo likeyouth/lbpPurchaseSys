@@ -1,23 +1,41 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import styles from './index.module.scss';
 import classnames from '@/utils/classnames';
 import { DatePicker, Radio} from 'antd';
 import Chart from '../components/EchartsBar';
 import moment from 'moment';
+import service from '@/service/service';
 
-const monthData = [{name: "一月", value: 100}, {name: "二月", value: 200}, {name: "三月", value: 300},{name: "四月", value: 400},{name: "五月", value: 500},
-{name: "六月", value: 100}, {name: "七月", value: 200}, {name: "八月", value: 300},{name: "九月", value: 400},{name: "十月", value: 500}, {name: "十一月", value: 600},{name: "十二月", value: 700}]
-const yearData = [{name: "2015", value: 1000}, {name: "2016", value: 2000},{name: "2017", value: 3000},{name: "2018", value: 4000},{name: "2019", value: 5000},{name: "2020", value: 6000},{name: "2021", value: 7000}]
 const year = new Date().getFullYear();
 export default function OrderStatistic() {
     const [selectValue, setSelectValue] = useState('month');
+    const [monthData, setMonthData] = useState([]);
+    const [yearData, setYearData] = useState([]);
 
     const handleChange = (e) => {
         setSelectValue(e.target.value)
     }
     const onDateChange = (date, dateString) => {
-        console.log(date,dateString)
+        getStatisticByMonth({year: dateString});
     }
+
+    const getStatisticByMonth = (query?) => {
+        query = query || {year: year};
+        service.getStatisticByMonth(query).then(res => {
+            setMonthData(res);
+        })
+    }
+
+    const getStatisticByYear = () => {
+        service.getStatisticByYear().then(res => {
+            setYearData(res);
+        })
+    }
+
+    useEffect(() => {
+        getStatisticByMonth();
+        getStatisticByYear();
+    }, [])
     return(
         <div className={styles.orderStatistic}>
             <div className={styles.card}>

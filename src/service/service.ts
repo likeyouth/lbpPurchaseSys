@@ -6,7 +6,7 @@ const getOperate = (status) => {
         case 1: return ['删除']; // 已申请
         case 4: return ['删除']; // 已付款
         case 5: return ['删除']; // 已到货
-        default: return ['重新申请', '取消订单', '删除'] // 已审批
+        default: return ['重新申请', '取消订单','确认付款', '删除'] // 已审批
     }
 }
 
@@ -185,5 +185,13 @@ export default {
     async updateOrder(body) {
         const res = await request.post('/order/update', body);
         return res;
+    },
+    async getStatisticByMonth(query) {
+        const res = await request.get('/order/statistic/getByMonth', {params: query});
+        return res.data.list;
+    },
+    async getStatisticByYear() {
+        const res = await request.get('/order/statistic/getByYear');
+        return res.data.list;
     }
 }

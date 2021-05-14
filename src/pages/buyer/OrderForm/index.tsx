@@ -11,6 +11,7 @@ const { TabPane } = Tabs;
 
 export default function OrderForm () {
     const [isReget, setIsReget] = useState(false);
+    const [isStatusChange, setChange] = useState(false);
 
     return(
         <div className={styles.orderForm}>
@@ -23,10 +24,10 @@ export default function OrderForm () {
                     <AppliedList isReget={isReget} setIsReget={setIsReget} />
                 </TabPane>
                 <TabPane tab="已审批" key="2">
-                    <ApprovalList setIsReget={setIsReget} />
+                    <ApprovalList setIsReget={setIsReget} setChange={setChange} />
                 </TabPane>
                 <TabPane tab="已付款" key="4">
-                    <PassedList status={4}/>
+                    <PassedList status={4} setChange={setChange} isStatusChange={isStatusChange} />
                 </TabPane>
                 <TabPane tab="已到货" key="5">
                     <PassedList status={5}/>

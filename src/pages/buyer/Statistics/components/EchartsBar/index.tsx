@@ -39,16 +39,6 @@ export default function EchartsBar(props) {
             // }
         },
         color: ["gold"],
-        legend: {
-            data: [{name: '金额', textStyle: {color: '#444'}}],
-            top: 0,
-            right: 'center',
-            textStyle: {
-                fontSize: 12
-            },
-            itemWidth: 8,
-            itemHeight: 8
-        },
         xAxis: {
             data: data.map(item => item.name),
             axisLine: {

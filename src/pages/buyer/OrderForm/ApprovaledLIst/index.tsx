@@ -3,6 +3,7 @@ import styles from './index.module.scss';
 import {Table, Button, Modal, Input,Form, message} from 'antd';
 import {useHistory} from 'ice';
 import service from '@/service/service';
+import moment from 'moment';
 
 const {confirm} = Modal;
 const { Search, TextArea } = Input;
@@ -11,8 +12,8 @@ const layout = {
     wrapperCol: { span: 19 },
 };
 
-export default function ApprovaledList (props: {setIsReget}) {
-    const {setIsReget} = props;
+export default function ApprovaledList (props: {setIsReget, setChange}) {
+    const {setIsReget, setChange} = props;
     const[form] = Form.useForm();
     const [total, setTotal] = useState(0);
     const [data, setData] = useState([]);
@@ -71,20 +72,39 @@ export default function ApprovaledList (props: {setIsReget}) {
         {
             title: '操作',
             dataIndex: 'operate',
-            width: '15%',
+            width: '20%',
             render: (op, row) => (
                 op.map((item, index) => {
-                    return <Button style={{padding: 0, paddingRight:5}} key={index} disabled={row.status == 3 && index ===2 || row.status === 6 && index ===1 || row.status === 2 && index ===1 ||  row.applierId !== Number(sessionStorage.getItem('userId'))} type="link" size="small" onClick={() => {
+                    return <Button style={{padding: 0, paddingRight:5}} key={index} disabled={row.status == 3 && (index ===3 || index === 0) || row.status === 6 && (index ===1 || index === 2) || row.status === 2 && (index === 2 || index ===1) ||  row.applierId !== Number(sessionStorage.getItem('userId'))} type="link" size="small" onClick={() => {
                         if(index == 0) {
                             // 重新申请
                             form.setFieldsValue({orderId: row.orderId});
                             setVisible(true);
                         } else if (index === 1){
                             // 取消订单
-                            service.updateOrder({orderId: row.orderId, status: 6}).then(res => {
-                                if(res.code === 200) {
-                                    message.info('取消成功');
-                                    getOrders(query.current);
+                            confirm({
+                                content: '确认取消订单吗?',
+                                onOk: () => {
+                                    service.updateOrder({orderId: row.orderId, status: 6}).then(res => {
+                                        if(res.code === 200) {
+                                            message.info('取消成功');
+                                            getOrders(query.current);
+                                        }
+                                    })
+                                }
+                            })
+                        }else if(index === 2) {
+                            // 确认付款
+                            confirm({
+                                content: '确认已完成付款吗',
+                                onOk: () => {
+                                    service.updateOrder({orderId: row.orderId, status: 4, payTime: moment(new Date()).format('YYYY-MM-DD')}).then(res => {
+                                        if(res.code === 200) {
+                                            message.info('修改成功');
+                                            getOrders(query.current);
+                                            setChange(true);
+                                        }
+                                    })
                                 }
                             })
                         }else{
@@ -156,7 +176,7 @@ export default function ApprovaledList (props: {setIsReget}) {
     }, [])
 
     return(
-        <div className={styles.orderForm}>
+        <div style={{paddingBottom: data.length === 0 ? 20 : 0}} className={styles.orderForm}>
             <Search enterButton style={{width: 250, marginBottom:10}} placeholder="请输入订单名称" onSearch={handleSearch} />
             <Table
             size="small"

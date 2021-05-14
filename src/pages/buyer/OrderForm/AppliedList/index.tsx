@@ -106,7 +106,7 @@ export default function AppliedList (props: {setIsReget, isReget}) {
         getOrders(query.current);
     }, [isReget])
     return(
-        <div className={styles.orderForm}>
+        <div style={{paddingBottom: data.length === 0 ? 20 : 0}} className={styles.orderForm}>
             <Search style={{width: 250, marginBottom: 10}} enterButton placeholder="请输入订单名称" onSearch={handleSearch} />
             <Table
             size="small"

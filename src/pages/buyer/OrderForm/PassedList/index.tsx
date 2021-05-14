@@ -10,9 +10,9 @@ const layout = {
     wrapperCol: { span: 19 },
 };
 
-export default function PassedList (props: {status}) {
+export default function PassedList (props: {status, isStatusChange, setChange}) {
     const [form] = Form.useForm();
-    const {status} = props;
+    const {status, setChange, isStatusChange} = props;
     const [data, setData] = useState([]);
     const [total,setTotal] = useState(0);
     const [visible, setVisible] = useState(false);
@@ -32,6 +32,7 @@ export default function PassedList (props: {status}) {
         {
             title: '订单名称',
             dataIndex: 'name',
+            width: '15%',
             render: (name, row) => (<Button type="link" onClick={() => {history.push(`/buyer/planeDetail?planeId=${row.planeId}&isForm=order`)}}>{name}</Button>)
         },
         {
@@ -69,6 +70,12 @@ export default function PassedList (props: {status}) {
 
     if(status === 4) {
         columns.push({
+            title: '付款时间',
+            dataIndex: 'payTime',
+            render: (payTime,row) => (
+                payTime ? payTime : '未填写'
+            )
+        },{
             title: '操作',
             dataIndex: 'operate',
             render: (op, row) => (
@@ -139,8 +146,15 @@ export default function PassedList (props: {status}) {
     useEffect(() => {
         getOrders();
     }, []);
+
+    useEffect(() => {
+        if(isStatusChange) {
+            getOrders(query.current);
+            setChange(false);
+        }
+    }, [isStatusChange])
     return(
-        <div className={styles.orderForm}>
+        <div style={{paddingBottom: data.length === 0 ? 20 : 0}} className={styles.orderForm}>
             <Search style={{width: 250, marginBottom: 10}} enterButton placeholder="请输入订单名称" onSearch={handleSearch}/>
             <Table
             size="small"
