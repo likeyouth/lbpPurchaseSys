@@ -77,7 +77,7 @@ export default function Applied(props) {
         {
             title: '状态',
             dataIndex: 'replyStatus',
-            render: (status) => (<span style={{color: status === 0 ? 'rgba(255, 0, 0, .5)' : ''}}>{getStatus(status)}</span>),
+            render: (status) => (<span style={{color: status === 0 ? 'rgba(255, 0, 0, .5)' : status === 1? 'rgb(14, 177, 175)' : ''}}>{getStatus(status)}</span>),
             width: '9%',
             key: 'replyStatus'
         },

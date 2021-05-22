@@ -193,5 +193,13 @@ export default {
     async getStatisticByYear() {
         const res = await request.get('/order/statistic/getByYear');
         return res.data.list;
+    },
+    async getStatisticBySupplier(query) {
+        const res = await request.get('/order/statistic/getBySupplier', {params: query});
+        return res.data;
+    },
+    async getOrderNum() {
+        const res = await request.get('/order/statistic/getOrderNum');
+        return res.data.list;
     }
 }

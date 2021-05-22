@@ -21,7 +21,7 @@ export default function AppliedList (props) {
         pageSize: 10,
     });
 
-    const [selectedData, setSelectedData] = useState({selectedRows: [], selectedRowKeys: []})
+    const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([]);
 
     const columns = [
         {
@@ -92,17 +92,15 @@ export default function AppliedList (props) {
     }
 
     const rowSelected = {
-        selectedRowKeys: selectedData.selectedRowKeys,
-        onChange: (selectedRowKeys, selectedRows) => {
-            setSelectedData({ selectedRowKeys: selectedRowKeys, selectedRows: selectedRows });
-        },
+        selectedRowKeys: selectedRowKeys,
+        onChange: selectedKeys => {setSelectedRowKeys(selectedKeys)}
     }
     const addReply = (values) => {
         service.addReply(values).then(res => {
             if(res.code === 200) {
                 message.info('审批成功！');
                 setIsChange(true);
-                getReply(query.current);
+                getReply({pageIndex: query.current.pageIndex -1 || 1, pageSize: query.current.pageSize});
             } else {
                 message.error('审批失败,请稍后重试！');
             }
@@ -116,9 +114,9 @@ export default function AppliedList (props) {
         if(isMore) {
             // 批量审批
             const values = form.getFieldsValue();
-            const body = selectedData.selectedRows.map((item:{requestId}) => ({
+            const body = selectedRowKeys.map((item:{requestId}) => ({
                 userId: userId,
-                requestId: item.requestId,
+                requestId: item,
                 status: values.status,
                 replyContent: values.replyContent
             }));
@@ -134,7 +132,7 @@ export default function AppliedList (props) {
     }
 
     const handleApprovalAll = () => {
-        if(!selectedData.selectedRows.length){
+        if(!selectedRowKeys.length){
             message.error('请先选择数据');
         } else {
             setIsMore(true);
@@ -177,7 +175,8 @@ export default function AppliedList (props) {
                 showQuickJumper: true,
                 onChange: onPageChange,
                 onShowSizeChange: showSizeChanger,
-                showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
+                showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`,
+                showSizeChanger: true
             }}></Table>
             <Modal title="采购审批" visible={visible}
             onOk={handleOk}

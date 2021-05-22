@@ -111,16 +111,7 @@ export default function ApprovaledList (props) {
 
     const rowSelected = {
         selectedRowKeys: selectedRowKeys,
-        onChange: selectedKeys => {
-            if(selectedRowKeys.length === 0) {
-                setSelectedRowKeys(selectedKeys);
-            } else {
-                const fiterItems = selectedKeys.filter(item => {
-                    return !selectedRowKeys.includes(item);
-                });
-                setSelectedRowKeys([...selectedRowKeys, ...fiterItems]);
-            }
-        },
+        onChange: selectedKeys => {setSelectedRowKeys(selectedKeys)},
         getCheckboxProps: (record) => ({
             disabled: record.planeId || record.replyStatus === 0
         })
@@ -137,6 +128,7 @@ export default function ApprovaledList (props) {
                 if(res.code === 200) {
                     message.info('添加成功，请到采购计划列表中查看');
                     getApprovalList(query.current);
+                    getPlan();
                     form.setFieldsValue({name: ''});
                     setSelectedRowKeys([]);
                 } else {
@@ -151,6 +143,7 @@ export default function ApprovaledList (props) {
                 if(res.code === 200) {
                     message.info('添加成功，请到采购计划列表中查看');
                     getApprovalList(query.current);
+                    getPlan();
                 }else {
                     message.info('添加失败，请稍后重试');
                     form.setFieldsValue({planeId: ''});
@@ -181,8 +174,8 @@ export default function ApprovaledList (props) {
         })
     }
 
-    const getPlan = (query?) => {
-        service.getPlan(query).then(res => {
+    const getPlan = () => {
+        service.getPlan().then(res => {
             setPlane(res.data);
         }).catch(err => {
             console.log(err);
@@ -216,6 +209,7 @@ export default function ApprovaledList (props) {
                 showQuickJumper: true,
                 onChange: onPageChange,
                 onShowSizeChange: showSizeChanger,
+                showSizeChanger: true,
                 showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
             }}></Table>
             <Modal title="生成采购计划" visible={visible}

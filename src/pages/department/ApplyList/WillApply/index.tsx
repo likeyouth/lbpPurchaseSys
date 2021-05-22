@@ -15,7 +15,7 @@ export default function WillApply(props) {
     const [form] = Form.useForm()
     const [total, setTotal] = useState(0);
     const [data, setData] = useState([]);
-    const [selectedData, setSelectedData] = useState({ selectedRowKeys: [], selectedRows: [] });
+    const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([]);
     const [visible, setVisible] = useState(false);
     const [isMore,setIsMore] = useState<boolean>(false);
     const query = useRef({
@@ -91,7 +91,7 @@ export default function WillApply(props) {
             })
         } else {
             // 申请
-            form.setFieldsValue({requestId: record.requestId});
+            form.setFieldsValue({requestId: record.requestId, num: record.num});
             setVisible(true);
         }
     }
@@ -109,21 +109,21 @@ export default function WillApply(props) {
 
     const handleOk = () => {
         if(isMore) {
-            const value = form.getFieldValue('reason');
-            const requestIds = selectedData.selectedRowKeys.map(item => ({
+            const value = form.getFieldsValue();
+            const requestIds = selectedRowKeys.map(item => ({
                 requestId: item,
                 status: 1,
-                reason: value
+                reason: value.reason,
+                num: value.num
             }));
             service.updateRequest({requestId: requestIds}).then(res => {
                 if(res.code === 200) {
                     message.info('申请成功，请到申请列表查看！');
                     setShouldUpdate(true);
-                    getWillApplyList(query.current);
+                    getWillApplyList({pageIndex: query.current.pageIndex -1 || 1, pageSize: query.current.pageSize});
                     setVisible(false);
                 } else {
                     message.error('申请失败，请稍后重试！');
-                    getWillApplyList(query.current);
                 }
             })
         } else {
@@ -141,18 +141,19 @@ export default function WillApply(props) {
             })
         }
         setIsMore(false);
-        form.setFieldsValue({reason: ''});
+        form.setFieldsValue({reason: '', num: 1});
     }
 
     const rowDelete = {
-        selectedRowKeys: selectedData.selectedRowKeys,
-        onChange: (selectedRowKeys, selectedRows) => {
-            setSelectedData({ selectedRowKeys: selectedRowKeys, selectedRows: selectedRows });
-        },
-    };
+        selectedRowKeys: selectedRowKeys,
+        onChange: selectedKeys => {setSelectedRowKeys(selectedKeys)},
+        getCheckboxProps: (record) => ({
+            disabled: record.planeId || record.replyStatus === 0
+        })
+    }
 
     const handleApply = () => {
-        if(selectedData.selectedRowKeys.length) {
+        if(selectedRowKeys.length) {
             setIsMore(true);
             setVisible(true);
         } else {
@@ -160,12 +161,12 @@ export default function WillApply(props) {
         }
     }
     const handleDelete = () => {
-        if(selectedData.selectedRowKeys.length) {
+        if(selectedRowKeys.length) {
             confirm({
                 content: <span>确认删除选中的数据吗？</span>,
                 onOk() {
                     // const list = selectedData.map(item => item.requestId);
-                    service.deleteRequest({requestId: selectedData.selectedRowKeys}).then(res => {
+                    service.deleteRequest({requestId: selectedRowKeys}).then(res => {
                         if(res.code === 200) {
                             message.info('删除成功');
                             getWillApplyList(query.current);
@@ -216,9 +217,10 @@ export default function WillApply(props) {
                 showQuickJumper: true,
                 onChange: onPageChange,
                 onShowSizeChange: showSizeChanger,
-                showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`
+                showTotal: (total, range) => `当前${range[0]}-${range[1]}条，共${total}条`,
+                showSizeChanger:true
             }}></Table>
-            <Modal title="重新申请" visible={visible}
+            <Modal title="新增申请" visible={visible}
             onOk={handleOk}
             onCancel={() => {
                 form.setFieldsValue({reason: ''});
@@ -229,6 +231,9 @@ export default function WillApply(props) {
                 <Form form={form} {...layout}>
                     <Form.Item style={{display: 'none'}} name="requestId">
                         <Input />
+                    </Form.Item>
+                    <Form.Item name="num" label="数量" rules={[{required: true, message: '数量必填'}]}>
+                        <InputNumber min={1}></InputNumber>
                     </Form.Item>
                     <Form.Item name="reason" label="申请原因">
                         <TextArea

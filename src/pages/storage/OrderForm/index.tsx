@@ -79,7 +79,7 @@ export default function OrderForm () {
             width: '10%',
             render: (op, row) => (
                 ['是否到货', '评价'].map((item, index) => {
-                    return <Button key={index} style={{padding: 0,paddingRight: 5}} disabled={index === 0 && row.realTime || row.status === 4 && index === 1} onClick={() => {handleClick(index, row)}} type="link">{item}</Button>
+                    return <Button key={index} style={{padding: 0,paddingRight: 5}} disabled={index === 0 && row.status === 5 || row.status !== 5 && index === 1} onClick={() => {handleClick(index, row)}} type="link">{item}</Button>
                 })
             )
         }
@@ -102,7 +102,7 @@ export default function OrderForm () {
         console.log(values)
         service.updateOrder(values).then(res => {
             if(res.code === 200) {
-                message.info('添加成功');
+                message.info('到货成功');
                 getOrders(query.current);
                 setVisible(false);
             }
@@ -130,7 +130,7 @@ export default function OrderForm () {
 
     const getOrders = (query?) => {
         query = query || {pageIndex: 1, pageSize: 10};
-        query.roleId = 4;
+        query.roleId = 4; // 库存管理员只能获取状态为已付款和到货的订单
         service.getOrders(query).then(res => {
             setData(res.data);
             setTotal(res.total);

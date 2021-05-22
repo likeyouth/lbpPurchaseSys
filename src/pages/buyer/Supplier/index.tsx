@@ -1,9 +1,10 @@
 import React, {useState, useRef, useEffect} from 'react';
 import styles from './index.module.scss';
 import service from '@/service/service';
-import {Table, Input, Button, Modal, Form, message } from 'antd';
+import {Table, Input, Button, Modal, Form, message, Row, Col} from 'antd';
 const {Search, TextArea} = Input;
 const {confirm} = Modal;
+import {useHistory} from 'ice';
 
 const layout = {
     labelCol: { span: 5},
@@ -11,6 +12,7 @@ const layout = {
 };
 
 export default function Supplier () {
+    const history = useHistory();
     const [total, setTotal] = useState<number>(100);
     const [data, setData] = useState([]);
     const [visible, setVisible] = useState<boolean>(false);
@@ -185,6 +187,7 @@ export default function Supplier () {
                 <Button type="primary" onClick={() => {
                     setVisible(true);
                     setIsEdit(false);}}>添加供应商</Button>
+                <Button style={{marginLeft: 10}} onClick={() => {history.push('/buyer/selection')}}>选择供应商</Button>
             </div>
             <Table
             size="small"

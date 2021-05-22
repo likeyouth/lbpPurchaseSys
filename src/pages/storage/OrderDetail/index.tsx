@@ -120,16 +120,7 @@ export default function OrderDetail () {
 
     const rowSelected = {
         selectedRowKeys: selectedRowKeys,
-        onChange: selectedKeys => {
-            if(selectedRowKeys.length === 0) {
-                setSelectedRowKeys(selectedKeys);
-            } else {
-                const fiterItems = selectedKeys.filter(item => {
-                    return !selectedRowKeys.includes(item);
-                });
-                setSelectedRowKeys([...selectedRowKeys, ...fiterItems]);
-            }
-        },
+        onChange: selectedKeys => {setSelectedRowKeys(selectedKeys)},
         getCheckboxProps: (record) => ({
             disabled: record.isArrival === 1
         })
