@@ -201,5 +201,13 @@ export default {
     async getOrderNum() {
         const res = await request.get('/order/statistic/getOrderNum');
         return res.data.list;
+    },
+    async getLbpNum(query) {
+        const res = await request.get('/order/statistic/getLbpNum', {params:query});
+        return res.data;
+    },
+    async getCategoryPrice() {
+        const res = await request.get('/order/statistic/getCategoryPrice');
+        return res.data.list;
     }
 }

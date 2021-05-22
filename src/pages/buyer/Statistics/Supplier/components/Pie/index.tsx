@@ -5,7 +5,12 @@ export default function Pie(props) {
     // data : [{name: "供应商", value: 50}, {name: "供应商", value: 50}]
     const {data} = props;
     // const data2 = {name: '', value:100 - data1.value}
-    let barColor = data.value > 80 ? 'rgb(143, 188, 135)' :  data.value > 60 ? 'rgb(90, 177, 239)' : 'rgb(210, 93, 73)'
+    let barColor = 'rgb(90, 177, 239)'
+    if(props.from === 'goods') {
+        barColor = data.value > 20 ? 'rgb(143, 188, 135)' :  data.value > 10 ? 'rgb(90, 177, 239)' : 'rgb(210, 93, 73)';
+    } else {
+        barColor = data.value > 80 ? 'rgb(143, 188, 135)' :  data.value > 60 ? 'rgb(90, 177, 239)' : 'rgb(210, 93, 73)';
+    }
     var option = {
         color:[barColor, '#e6f1ff'],
         title: {

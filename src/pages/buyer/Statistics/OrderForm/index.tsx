@@ -11,6 +11,7 @@ export default function OrderStatistic() {
     const [selectValue, setSelectValue] = useState('month');
     const [monthData, setMonthData] = useState([]);
     const [yearData, setYearData] = useState([]);
+    const [category, setCategory] = useState([]);
 
     const handleChange = (e) => {
         setSelectValue(e.target.value)
@@ -32,55 +33,35 @@ export default function OrderStatistic() {
         })
     }
 
+    const getCategoryPrice = () => {
+        service.getCategoryPrice().then(res => {
+            setCategory(res);
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
     useEffect(() => {
         getStatisticByMonth();
         getStatisticByYear();
+        getCategoryPrice();
     }, [])
     return(
         <div className={styles.orderStatistic}>
             <div className={styles.card}>
-                <div className={styles.cardItem}>
-                    <div className={classnames(styles.icon, styles.icon1)}></div>
-                    <div className={styles.text}>
-                        <span className={styles.titleText}>头部护具</span>
-                        <span className={styles.number}>10,000</span>
-                    </div>
-                </div>
-                <div className={styles.cardItem}>
-                    <div className={classnames(styles.icon, styles.icon2)}></div>
-                    <div className={styles.text}>
-                        <span className={styles.titleText}>呼吸护具</span>
-                        <span className={styles.number}>10,000</span>
-                    </div>
-                </div>
-                <div className={styles.cardItem}>
-                    <div className={classnames(styles.icon, styles.icon3)}></div>
-                    <div className={styles.text}>
-                        <span className={styles.titleText}>防护服</span>
-                        <span className={styles.number}>10,000</span>
-                    </div>
-                </div>
-                <div className={styles.cardItem}>
-                    <div className={classnames(styles.icon, styles.icon4)}></div>
-                    <div className={styles.text}>
-                        <span className={styles.titleText}>防护鞋</span>
-                        <span className={styles.number}>10,000</span>
-                    </div>
-                </div>
-                <div className={styles.cardItem}>
-                    <div className={classnames(styles.icon, styles.icon5)}></div>
-                    <div className={styles.text}>
-                        <span className={styles.titleText}>眼(面)护具</span>
-                        <span className={styles.number}>10,000</span>
-                    </div>
-                </div>
-                <div className={styles.cardItem}>
-                    <div className={classnames(styles.icon, styles.icon6)}></div>
-                    <div className={styles.text}>
-                        <span className={styles.titleText}>防坠落护具</span>
-                        <span className={styles.number}>10,000</span>
-                    </div>
-                </div>
+                {
+                    category.map((item: {category, totalPrice, englishName}, index) => {
+                        return (
+                            <div key={index} className={styles.cardItem}>
+                                <div className={classnames(styles.icon, styles[item.englishName])}></div>
+                                <div className={styles.text}>
+                                    <span className={styles.titleText}>{item.category}</span>
+                                    <span className={styles.number}>{item.totalPrice}</span>
+                                </div>
+                            </div>
+                        )
+                    })
+                }
             </div>
             <div className={styles.graph}>
                 <h4 className={styles.title}>订单统计</h4>

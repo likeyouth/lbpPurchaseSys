@@ -68,7 +68,7 @@ export default function EchartsBar(props) {
         },
         yAxis: [{
             type: "value",
-            name: "元",
+            name: props.from === 'goods' ? '数量' : "元",
             nameTextStyle: {
                 color: "#444",
                 fontSize: 12
