@@ -64,14 +64,14 @@ export default function OrderDetail () {
             title: '创建日期',
             dataIndex: 'createdAt'
         },
-        {
-            title: '操作',
-            dataIndex: 'operate',
-            width: '8%',
-            render: (op, row) => (
-                <Button disabled={row.isArrival === 1} type="link" onClick={() => {handleArrival(row)}}>是否到货</Button>
-            )
-        }
+        // {
+        //     title: '操作',
+        //     dataIndex: 'operate',
+        //     width: '8%',
+        //     render: (op, row) => (
+        //         <Button disabled={row.isArrival === 1} type="link" onClick={() => {handleArrival(row)}}>是否到货</Button>
+        //     )
+        // }
     ]
 
     const handleArrival = (row) => {
@@ -132,9 +132,9 @@ export default function OrderDetail () {
 
     return(
         <div className={styles.detail}>
-            <h4 className={styles.title}>订单详情</h4>
-            <Button type="primary" onClick={handleAll} style={{marginBottom: 10}}>一键确认</Button>
-            <Table rowSelection={{...rowSelected}} size="small" bordered scroll={{y: 450}}
+            <h4 style={{marginBottom:20}} className={styles.title}>订单详情</h4>
+            {/* <Button type="primary" onClick={handleAll} style={{marginBottom: 10}}>一键确认</Button> */}
+            <Table size="small" bordered scroll={{y: 450}}
             // @ts-ignore
             dataSource={data} columns={columns}
             pagination={{

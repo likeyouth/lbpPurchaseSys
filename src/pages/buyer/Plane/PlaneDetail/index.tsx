@@ -1,21 +1,25 @@
 import React, {useState, useRef,useEffect} from 'react';
 import styles from './index.module.scss';
-import {Table, Button, Modal, Input, Form, message} from 'antd';
+import {Table, Button, Modal, Input, Form, message, InputNumber, Select} from 'antd';
 import service from '@/service/service';
-import {useSearchParams} from 'ice';
+import {useSearchParams, useHistory} from 'ice';
+const {Option} = Select;
 
 const {confirm} = Modal;
 const layout = {
-    labelCol: { span: 4 },
-    wrapperCol: { span: 20 },
+    labelCol: { span: 5 },
+    wrapperCol: { span: 19 },
 };
 
 export default function OrderDetail () {
+    const history = useHistory();
     const [form] = Form.useForm();
     const [total, setTotal] = useState<number>(100)
     const [visible, setVisible] = useState<boolean>(false);
+    const [visible1, setVisible1] = useState<boolean>(false);
     const [data, setData] = useState([]);
-    const {planeId, isOrder, isForm} = useSearchParams();
+    const {planeId, isOrder, isForm, supplierId} = useSearchParams();
+    const [suppliers, setSuppliers] = useState<any[]>([]);
     const query = useRef({
         pageIndex: 1,
         pageSize: 10,
@@ -30,7 +34,8 @@ export default function OrderDetail () {
         {
             title: '名称',
             dataIndex: 'lbpName',
-            // width: '15%'
+            width: '15%',
+            elipsis: true
         },
         {
             title: '图片',
@@ -44,7 +49,8 @@ export default function OrderDetail () {
         {
             title: '规格',
             dataIndex: 'standard',
-            ellipsis: true
+            ellipsis: true,
+            width:'15%'
         },
         {
             title: '价格',
@@ -68,16 +74,25 @@ export default function OrderDetail () {
         {
             title: '创建日期',
             dataIndex: 'createdAt'
-        },
-        {
-            title: '操作',
-            dataIndex: 'operate',
-            width: '8%',
-            render: (op, row) => (
-                <Button type="link" onClick={() => {handleRemove(row)}}>移除</Button>
-            )
         }
     ]
+
+    if(isForm !== 'order') {
+        columns.push({
+            title: '操作',
+            dataIndex: 'operate',
+            width: '15%',
+            render: (op, row) => (
+                <>
+                    <Button style={{display: isOrder === '1' ? 'none' : 'inline-block'}} type="link" onClick={() => {handleRemove(row)}}>移除</Button>
+                    <Button type="link" onClick={() => {
+                        setVisible1(true);
+                        form.setFieldsValue({replyId: row.replyId});
+                    }}>添加价格</Button>
+                </>
+            )
+        })
+    }
 
     const handleRemove = (row) => {
         confirm({
@@ -108,7 +123,8 @@ export default function OrderDetail () {
         const applierId = Number(sessionStorage.getItem('userId'));
         form.validateFields().then(values => {
             values.planeId = planeId;
-            values.supplierId = 2;
+            console.log(values);
+            values.supplierId = supplierId || values.supplierId;
             values.applierId = applierId;
             service.addOrder(values).then(res => {
                 if(res.code === 200) {
@@ -135,7 +151,25 @@ export default function OrderDetail () {
     return(
         <div className={styles.detail}>
             <h4 className={styles.title}>{isForm === 'order' ? '订单详情' : '采购计划详情'}</h4>
-            <Button style={{marginBottom: 15, display: isForm==='order' ? 'none' : 'block'}} disabled={ Number(isOrder) === 1 } type="primary" onClick={() => {setVisible(true)}}>生成订单</Button>
+            <Button style={{marginBottom: 15, display: isForm==='order' ? 'none' : 'inline-block'}} disabled={ Number(isOrder) === 1 } type="primary" onClick={() => {
+                if(!supplierId) {
+                    confirm({
+                        content: '需要先进行供应商选择吗？',
+                        onOk: () => {
+                            history.push(`/buyer/selection?planeId=${planeId}`)
+                        },
+                        onCancel: () => {
+                            setVisible(true);
+                            service.getSuppliers({all: true}).then(res => {
+                                setSuppliers(res.data);
+                            })
+                        }
+                    })
+                } else {
+                    setVisible(true);
+                }
+            }}>生成订单</Button>
+            <Button style={{marginLeft: 10, display: isForm==='order' ||  Number(isOrder) === 1 ? 'none' : 'inline-block'}} onClick={() => {history.push(`/buyer/selection?planeId=${planeId}`)}}>选择供应商</Button>
             <Table size="small" bordered scroll={{y: 450}}
             // @ts-ignore
             dataSource={data} columns={columns}
@@ -153,6 +187,41 @@ export default function OrderDetail () {
                 <Form form={form} {...layout}>
                     <Form.Item name="orderName" label="订单名称" rules={[{required: true, message: '请输入订单名称'}]}>
                         <Input placeholder="请输入订单名称"/>
+                    </Form.Item>
+                    {
+                        !supplierId ?
+                        <Form.Item name="supplierId" label="供应商选择" rules={[{required: true, message: '请选择供应商'}]}>
+                            <Select>
+                                {
+                                    suppliers.map(item => {
+                                        return <Option value={item.supplierId} key={item.supplierId}>{item.supplierName}</Option>
+                                    })
+                                }
+                            </Select>
+                        </Form.Item> :
+                        ''
+                    }
+                </Form>
+            </Modal>
+            <Modal title="添加价格" visible={visible1}
+            onOk={() => {
+                form.validateFields().then(values => {
+                    service.updateReply(values).then(res => {
+                        if(res.code === 200) {
+                            message.info('添加成功');
+                            getApprovalList(query.current);
+                            setVisible1(false);
+                        }
+                    })
+                })
+            }}
+            onCancel={() => {setVisible1(false)}}>
+                <Form form={form} {...layout}>
+                    <Form.Item name="replyId" style={{display: 'none'}}>
+                        <Input/>
+                    </Form.Item>
+                    <Form.Item name="price" label="价格" rules={[{required: true, message: '请输入劳保品价格'}]}>
+                        <InputNumber min={0}/>
                     </Form.Item>
                 </Form>
             </Modal>

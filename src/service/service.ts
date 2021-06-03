@@ -209,5 +209,44 @@ export default {
     async getCategoryPrice() {
         const res = await request.get('/order/statistic/getCategoryPrice');
         return res.data.list;
+    },
+    async getEvaluation(query) {
+        const res = await request.get('/evaluation/info', {params: query});
+        return res.data;
+    },
+    async addEvaluation(body) {
+        const res = await request.post('/evaluation/add', body);
+        return res;
+    },
+    async getScore(query){
+        const res = await request.get('/evaluation/score', {params: query});
+        if(res.code === 200) {
+            return res.data;
+        }
+        return res;
+    },
+    async addWeight(body) {
+        const res = await request.post('/weight/add', body);
+        return res;
+    },
+    async getWeight() {
+        const res:any = await request.get('/weight');
+        return res.data;
+    },
+    async getESuppliers() {
+        const res = await request.get('/order/statistic/getEvaluation');
+        return res.data;
+    },
+    async getIndexScore(query) {
+        const res = await request.get('/order/statistic/getScore', {params: query});
+        return res.data;
+    },
+    async getAllOrder(query) {
+        const res = await request.get('/order/all', {params: query});
+        const data = res.data.list?.map((item, index) => ({...item, replyContent: item.replyContent || '无', applier: item.Applier.username, reason: item.reason || '无', supplier: item.Supplier.supplierName, approvaler: item.Approvaler ? item.Approvaler.username : '无', order: (query.pageIndex -1) * query.pageSize + index+1, key: item.orderId, createdAt: item.createdAt?.slice(0,10)}));
+        return {
+            data: data,
+            total: res.total
+        };
     }
 }

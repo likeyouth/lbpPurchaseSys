@@ -56,10 +56,21 @@ export default function ApprovaledList (props: {setApproval,isApprovaled}) {
             title: '是否通过',
             dataIndex: 'status',
             render: (state) => (
-                <span style={{color: state === 2? 'rgb(221, 79, 66)' : state == 6 ? 'rgba(0,0,0, .5)' : 'rgb(14, 177, 175)'}}>{state === 2 ? '未通过' : state === 6 ? '已取消' : '已通过'}</span>
+                <span style={{color: state === 2? 'rgb(221, 79, 66)' : state == 6 ? 'rgba(0,0,0, .5)' : 'rgb(14, 177, 175)'}}>{getStatus(state)}</span>
             )
         }
     ]
+
+    //2未通过，3已通过，4已付款，5已到货，6已取消
+    const getStatus = (status) => {
+        switch(status) {
+            case 2: return '未通过';
+            case 3: return '已通过';
+            case 4: return '已付款';
+            case 5: return '已到货';
+            case 6: return '已取消';
+        }
+    }
 
     const showSizeChanger = (current, pageSize) => {
         query.current.pageSize = pageSize;
@@ -74,8 +85,7 @@ export default function ApprovaledList (props: {setApproval,isApprovaled}) {
 
     const getOrders = (query?) => {
         query = query || {pageIndex: 1, pageSize: 10};
-        query.status = 2;
-        service.getOrders(query).then(res => {
+        service.getAllOrder(query).then(res => {
             setData(res.data);
             setTotal(res.total);
         }).catch(err => {

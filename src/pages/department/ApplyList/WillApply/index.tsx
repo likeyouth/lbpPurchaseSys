@@ -232,9 +232,12 @@ export default function WillApply(props) {
                     <Form.Item style={{display: 'none'}} name="requestId">
                         <Input />
                     </Form.Item>
-                    <Form.Item name="num" label="数量" rules={[{required: true, message: '数量必填'}]}>
-                        <InputNumber min={1}></InputNumber>
-                    </Form.Item>
+                    {
+                        !isMore ?
+                        <Form.Item name="num" label="数量" rules={[{required: true, message: '数量必填'}]}>
+                            <InputNumber min={1}></InputNumber>
+                        </Form.Item> : ''
+                    }
                     <Form.Item name="reason" label="申请原因">
                         <TextArea
                             placeholder="请输入申请原因"

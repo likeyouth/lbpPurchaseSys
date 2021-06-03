@@ -8,107 +8,73 @@ import service from '@/service/service';
 
 const {Option} = Select;
 
-const orderStatisic = [
-    {
-        id: 1,
-        supplier: '供应商一号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 2,
-        supplier: '供应商二号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 3,
-        supplier: '供应商三号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 4,
-        supplier: '供应商四号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 5,
-        supplier: '供应商五号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 6,
-        supplier: '供应商六号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 7,
-        supplier: '供应商七号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 8,
-        supplier: '供应商八号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 9,
-        supplier: '供应商十号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 10,
-        supplier: '供应商十一号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 11,
-        supplier: '供应商八号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 12,
-        supplier: '供应商十号',
-        orderNum: 1000,
-        percent: '70%'
-    },
-    {
-        id: 13,
-        supplier: '供应商十一号',
-        orderNum: 1000,
-        percent: '70%'
-    }
-]
-const pieData = [{title: '产品合格率', name: "hgl", value: 39.2},{title: '价格', name: "price", value: 88},{title: '到货准时率', name: "dhzsl", value: 70},{title: '服务水平', name: "fwsp", value: 80},{title: '好评率', name: "hpl", value: 77},{title: '好评率', name: "hpl", value: 77},
-{title: '产品合格率', name: "hgl", value: 39.2},{title: '价格', name: "price", value: 88},{title: '到货准时率', name: "dhzsl", value: 70},{title: '服务水平', name: "fwsp", value: 80}]
 export default function Supplier() {
     const [suppliers, setSupplier] = useState([]);
     const [suppliersData, setSupplierData] = useState([]);
     const [percentData, setPercentData] = useState([]);
     const [orderData, setOrderData] = useState([]);
+    const [pieData, setPieData] = useState<{title, name, value}[] >([]);
+
     const onTimeChange = (date, dateString) => {
         getStatisticeBySupplier({year: dateString});
     }
+
+    // 换算成百分制
+    const getValue = (val:string) => {
+        return Math.round(parseFloat(val) / 10 * 100);
+    }
+    const getValue1 = (val:string) => {
+        const value = parseFloat(val);
+        if(value <=0) {
+            return 100;
+        } else {
+            const percent = Math.round(100 - value);
+            const result = percent > 0 ? percent : 0;
+            return result;
+        }
+    }
     const onSeleceChange = (val) => {
-        console.log(val);
-        setSupplier(val)
+        service.getIndexScore({supplierId: val}).then(res => {
+            const data: {title, name, value}[] = [];
+            const weight = res[0];
+            for(let key in weight) {
+                switch(key) {
+                    case 'after_service':
+                        data.push({title: '售后服务', name: key, value: getValue(weight[key])});
+                        break;
+                    case 'pre_service':
+                        data.push({title: '售前服务', name: key, value: getValue(weight[key])});
+                        break;
+                    case 'avg_price':
+                        data.push({title: '平均价格', name: key, value: getValue1(weight[key])});
+                        break;
+                    case 'credit':
+                        data.push({title: '信誉', name: key, value: getValue(weight[key])});
+                        break;
+                    case 'lowest_price':
+                        data.push({title: '最低价格', name: key, value: getValue1(weight[key])});
+                        break;
+                    case 'ord':
+                        data.push({title: '准确率', name: key, value: getValue(weight[key])});
+                        break;
+                    case 'otd':
+                        data.push({title: '准时率', name: key, value: getValue(weight[key])});
+                        break;
+                    case 'pass_rate':
+                        data.push({title: '合格率', name: key, value: getValue(weight[key])});
+                        break;
+                    case 'quality': data.push({title: '质量等级', name: key, value: getValue(weight[key])}); break;
+                    case 'supplier_level': data.push({title: '供应能力', name: key, value: getValue(weight[key])}); break;
+                }
+            }
+            setPieData(data);
+        })
     }
 
     const getSuppliers = () => {
-        service.getSuppliers({all : true}).then(res => {
-            const suppliers = res.data.map(item => (
-                {id: item.supplierId, name: item.supplierName}
-            ))
-            setSupplier(suppliers);
+        service.getESuppliers().then(res => {
+            setSupplier(res);
+            onSeleceChange(1);
         }).catch(err => {
             console.log(err);
         })
@@ -154,10 +120,10 @@ export default function Supplier() {
                 <div className={styles.bottom}>
                     <h4 className={styles.title}>供应商评价指标分析</h4>
                     <div className={styles.form}>
-                        <Select onChange={onSeleceChange} style={{width: 150}} placeholder="请选择供应商">
+                        <Select defaultValue={1} onChange={onSeleceChange} style={{width: 150}} placeholder="请选择供应商">
                             {
-                                suppliers.map((item: {id, name}) => {
-                                    return <Option value={item.id} key={item.id}>{item.name}</Option>
+                                suppliers.map((item: {supplierId, supplierName}) => {
+                                    return <Option value={item.supplierId} key={item.supplierId}>{item.supplierName}</Option>
                                 })
                             }
                         </Select>

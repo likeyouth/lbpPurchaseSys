@@ -47,7 +47,8 @@ export default function OrderForm () {
             render: (op, row) => (
                 <div>
                     {op.map((item, index) => {
-                        return <Button disabled={index === 0 && row.isOrder ===1 || row.userId !== Number(sessionStorage.getItem('userId'))} key={index} danger={index === 1} style={{marginLeft: 10}} type="link" size="small" onClick={() => {handleClick(index,row)}}>{item}</Button>
+                        // 已生成订单的采购计划不允许删除和重新生成订单
+                        return <Button disabled={row.isOrder ===1 || row.userId !== Number(sessionStorage.getItem('userId'))} key={index} danger={index === 1} style={{marginLeft: 10}} type="link" size="small" onClick={() => {handleClick(index,row)}}>{item}</Button>
                     })}
                 </div>
             )

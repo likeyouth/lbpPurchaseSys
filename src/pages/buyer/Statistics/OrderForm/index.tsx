@@ -1,22 +1,24 @@
 import React, {useState, useEffect} from 'react';
 import styles from './index.module.scss';
 import classnames from '@/utils/classnames';
-import { DatePicker, Radio} from 'antd';
+import { DatePicker, Radio, Empty} from 'antd';
 import Chart from '../components/EchartsBar';
 import moment from 'moment';
 import service from '@/service/service';
 
-const year = new Date().getFullYear();
+const initialYear = new Date().getFullYear();
 export default function OrderStatistic() {
     const [selectValue, setSelectValue] = useState('month');
     const [monthData, setMonthData] = useState([]);
     const [yearData, setYearData] = useState([]);
     const [category, setCategory] = useState([]);
+    const [year, setYear] = useState(initialYear);
 
     const handleChange = (e) => {
         setSelectValue(e.target.value)
     }
     const onDateChange = (date, dateString) => {
+        setYear(dateString);
         getStatisticByMonth({year: dateString});
     }
 
@@ -39,6 +41,16 @@ export default function OrderStatistic() {
         }).catch(err => {
             console.log(err);
         })
+    }
+
+    const renderChart = () => {
+        if(selectValue === 'month' && monthData.length) {
+            return  <Chart data={ monthData } />
+        } else if(selectValue === 'year') {
+            return <Chart data={ yearData } />
+        } else {
+            return <Empty style={{marginTop: 20}}/>
+        }
     }
 
     useEffect(() => {
@@ -75,7 +87,9 @@ export default function OrderStatistic() {
                     }
                 </div>
                 <div className={styles.chart}>
-                    <Chart data={selectValue === 'month' ? monthData : yearData} />
+                    {
+                        renderChart()
+                    }
                 </div>
             </div>
         </div>
